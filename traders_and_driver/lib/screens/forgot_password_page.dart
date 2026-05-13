@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -87,7 +89,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       // Workaround: After OTP verify, the user is considered authenticated (session created). Then we can update password.
       final session = Supabase.instance.client.auth.currentSession;
       if (session != null) {
-        await Supabase.instance.client.auth.updateUser(UserAttributes(password: _newPasswordController.text));
+        await Supabase.instance.client.auth.updateUser(UserAttributes(password: sha256.convert(utf8.encode(_newPasswordController.text)).toString()));
         setState(() {
           _resetCompleted = true;
           _isLoading = false;

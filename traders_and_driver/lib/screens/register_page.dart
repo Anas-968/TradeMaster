@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -154,7 +156,7 @@ class _RegisterPageState extends State<RegisterPage> {
         // Update user metadata and set password
         await Supabase.instance.client.auth.updateUser(
           UserAttributes(
-            password: _passwordController.text,
+            password: sha256.convert(utf8.encode(_passwordController.text)).toString(),
             data: {
               'full_name': _fullNameController.text.trim(),
               'user_type': _selectedUserType,

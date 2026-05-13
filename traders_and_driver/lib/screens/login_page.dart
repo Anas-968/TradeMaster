@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -41,7 +43,7 @@ class _LoginPageState extends State<LoginPage> {
 
         final response = await Supabase.instance.client.auth.signInWithPassword(
           phone: formattedPhone,
-          password: _passwordController.text,
+          password: sha256.convert(utf8.encode(_passwordController.text)).toString(),
         );
 
         if (response.user != null) {
