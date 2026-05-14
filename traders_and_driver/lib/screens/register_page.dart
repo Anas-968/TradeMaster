@@ -50,6 +50,13 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
+  bool _isStrongPassword(String password) {
+    final passwordRegex = RegExp(
+      r'^(?=.*[a-z])(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{6,}',
+    );
+    return passwordRegex.hasMatch(password);
+  }
+
   // Step 1: Send OTP to verify phone number
   Future<void> _sendOtp() async {
     // Validate all fields before sending OTP
@@ -76,9 +83,13 @@ class _RegisterPageState extends State<RegisterPage> {
     }
 
     final password = _passwordController.text;
-    if (password.isEmpty || password.length < 6) {
+    if (password.isEmpty || !_isStrongPassword(password)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password must be at least 6 characters')),
+        const SnackBar(
+          content: Text(
+            'Password must be at least 6 characters and include uppercase, lowercase, and a special character',
+          ),
+        ),
       );
       return;
     }
@@ -318,7 +329,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         obscureText: _obscurePassword,
                         decoration:
                             _inputDecoration(
-                              'Password (min 6 characters)',
+                              'Password (min 6 chars, upper/lower/special)',
                               Icons.lock_outline,
                             ).copyWith(
                               suffixIcon: IconButton(
@@ -336,7 +347,8 @@ class _RegisterPageState extends State<RegisterPage> {
                         validator: (v) {
                           if (v == null || v.isEmpty)
                             return 'Password required';
-                          if (v.length < 6) return 'Minimum 6 characters';
+                          if (!_isStrongPassword(v))
+                            return 'Use uppercase, lowercase, and special char';
                           return null;
                         },
                       ),
