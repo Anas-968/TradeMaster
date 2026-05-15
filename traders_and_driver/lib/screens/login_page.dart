@@ -57,7 +57,7 @@ class _LoginPageState extends State<LoginPage> {
             } else if (userType == 'Driver') {
               Navigator.pushReplacementNamed(context, '/driver');
             } else {
-              Navigator.pushReplacementNamed(context, '/home');
+              Navigator.pushReplacementNamed(context, '/');
             }
           }
         }
@@ -284,6 +284,20 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       ],
+                    ),
+                    Center(
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/change-password');
+                        },
+                        child: Text(
+                          'Change Password?',
+                          style: GoogleFonts.poppins(
+                            color: const Color(0xFF1A237E),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
