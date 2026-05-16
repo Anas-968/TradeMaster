@@ -195,7 +195,10 @@ void main() {
 
       expect(find.text('Enter your full name'), findsOneWidget);
       expect(find.text('e.g., 12345678 (Oman)'), findsOneWidget);
-      expect(find.text('Password (min 6 characters)'), findsOneWidget);
+      expect(
+        find.text('Password (min 6 chars, upper/lower/special)'),
+        findsOneWidget,
+      );
       expect(find.text('Confirm your password'), findsOneWidget);
     });
   });
