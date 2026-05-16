@@ -57,7 +57,7 @@ class DriverDashboard extends StatelessWidget {
           ),
         ],
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,6 +72,7 @@ class DriverDashboard extends StatelessWidget {
               crossAxisCount: 2,
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
+              childAspectRatio: 1.3,
               children: [
                 _buildStatCard(Icons.local_shipping, 'Available Loads', '24', Colors.blue),
                 _buildStatCard(Icons.assignment_turned_in, 'Accepted Jobs', '5', Colors.green),
@@ -82,23 +83,23 @@ class DriverDashboard extends StatelessWidget {
             const SizedBox(height: 24),
             Text('Recent Bids', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF1A237E))),
             const SizedBox(height: 12),
-            Expanded(
-              child: ListView.builder(
-                itemCount: 3,
-                itemBuilder: (context, index) => Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: ListTile(
-                    leading: const Icon(Icons.gavel, color: Color(0xFF1A237E)),
-                    title: Text('Load #${2000 + index}', style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
-                    subtitle: Text('Bid placed: \$${(index + 1) * 150} • Pending'),
-                    trailing: const Chip(label: Text('Awaiting'), backgroundColor: Colors.orangeAccent),
-                  ),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: 3,
+              itemBuilder: (context, index) => Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                child: ListTile(
+                  leading: const Icon(Icons.gavel, color: Color(0xFF1A237E)),
+                  title: Text('Load #${2000 + index}', style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
+                  subtitle: Text('Bid placed: \$${(index + 1) * 150} • Pending'),
+                  trailing: const Chip(label: Text('Awaiting'), backgroundColor: Colors.orangeAccent),
                 ),
               ),
             ),
           ],
         ),
-      ),
+      )
     );
   }
 

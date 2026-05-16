@@ -57,7 +57,7 @@ class TraderDashboard extends StatelessWidget {
           ),
         ],
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,6 +72,7 @@ class TraderDashboard extends StatelessWidget {
               crossAxisCount: 2,
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
+              childAspectRatio: 1.3,
               children: [
                 _buildStatCard(Icons.inventory, 'Total Products', '12', Colors.blue),
                 _buildStatCard(Icons.local_shipping, 'Active Deliveries', '3', Colors.green),
@@ -82,8 +83,9 @@ class TraderDashboard extends StatelessWidget {
             const SizedBox(height: 24),
             Text('Recent Orders', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF1A237E))),
             const SizedBox(height: 12),
-            Expanded(
-              child: ListView.builder(
+             ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
                 itemCount: 5,
                 itemBuilder: (context, index) => Card(
                   margin: const EdgeInsets.only(bottom: 12),
@@ -95,7 +97,7 @@ class TraderDashboard extends StatelessWidget {
                   ),
                 ),
               ),
-            ),
+            
           ],
         ),
       ),

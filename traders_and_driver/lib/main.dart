@@ -4,7 +4,7 @@ import 'screens/admin_page.dart';
 import 'screens/driver_page.dart';
 import 'screens/forgot_password_page.dart';
 import 'screens/home_page.dart';
-
+import 'screens/change_password_page.dart';
 import 'screens/login_page.dart';
 import 'screens/register_page.dart';
 import 'screens/trader_page.dart';
@@ -26,6 +26,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'TradeMaster',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(primarySwatch: Colors.blue, fontFamily: 'Poppins'),
       initialRoute: '/',
       routes: {
@@ -36,6 +37,7 @@ class MyApp extends StatelessWidget {
         '/trader': (context) => const TraderPage(),
         '/driver': (context) => const DriverPage(),
         '/admin': (context) => const AdminPage(),
+        '/change-password':(context) => const ChangePasswordPage(),
       },
     );
   }

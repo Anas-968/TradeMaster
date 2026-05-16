@@ -57,7 +57,7 @@ class AdminDashboard extends StatelessWidget {
           ),
         ],
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -70,6 +70,7 @@ class AdminDashboard extends StatelessWidget {
               crossAxisCount: 2,
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
+              childAspectRatio: 1.3,
               children: [
                 _buildAdminCard(Icons.person, 'Total Users', '156', Colors.blue),
                 _buildAdminCard(Icons.business, 'Traders', '89', Colors.green),
@@ -80,8 +81,9 @@ class AdminDashboard extends StatelessWidget {
             const SizedBox(height: 24),
             Text('Recent Activities', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
-            Expanded(
-              child: ListView.builder(
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
                 itemCount: 4,
                 itemBuilder: (context, index) => ListTile(
                   leading: CircleAvatar(backgroundColor: const Color(0xFF1A237E), child: Text('${index + 1}')),
@@ -90,7 +92,6 @@ class AdminDashboard extends StatelessWidget {
                   trailing: const Icon(Icons.arrow_forward),
                 ),
               ),
-            ),
           ],
         ),
       ),
