@@ -1,0 +1,26 @@
+# Flutter / Dart
+**/.dart_tool/
+**/build/
+**/.packages
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/generated_plugin_registrant.dart
+**/*.log
+
+# Android
+**/local.properties
+**/.gradle/
+
+# Xcode
+**/DerivedData/
+**/Flutter/Flutter.framework
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Misc
+.DS_Store
+*.swp
+*.tmp
