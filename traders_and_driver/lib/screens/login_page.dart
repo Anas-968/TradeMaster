@@ -23,22 +23,43 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  // In login_page.dart, replace the login method with:
+  String? _formatPhoneNumber(String raw) {
+    final digits = raw.replaceAll(RegExp(r'\D'), '');
+
+    if (digits.length == 8) return '+968$digits';
+    if (digits.startsWith('968') && digits.length == 11) return '+$digits';
+    if (raw.startsWith('+') && digits.length >= 8) return '+$digits';
+    return null;
+  }
+
+  String _loginErrorMessage(Object error) {
+    if (error is AuthException) {
+      final message = error.message.toLowerCase();
+      if (error.statusCode == '429' || message.contains('rate limit')) {
+        return 'Too many login attempts. Please wait a moment and try again.';
+      }
+      if (message.contains('invalid login credentials') ||
+          message.contains('invalid credentials')) {
+        return 'The phone number or password is incorrect.';
+      }
+    }
+    return 'We could not sign you in. Check your connection and try again.';
+  }
+
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
+      final formattedPhone = _formatPhoneNumber(_phoneController.text.trim());
+      if (formattedPhone == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Enter a valid 8-digit Oman phone number.'),
+          ),
+        );
+        return;
+      }
+
       setState(() => _isLoading = true);
       try {
-        final phone = _phoneController.text.trim();
-        String digits = phone.replaceAll(RegExp(r'\D'), '');
-        String formattedPhone;
-        if (digits.length == 8) {
-          formattedPhone = '+968$digits';
-        } else if (phone.startsWith('+')) {
-          formattedPhone = phone;
-        } else {
-          formattedPhone = '+$digits';
-        }
-
         final response = await Supabase.instance.client.auth.signInWithPassword(
           phone: formattedPhone,
           password: _passwordController.text,
@@ -59,20 +80,16 @@ class _LoginPageState extends State<LoginPage> {
             } else {
               Navigator.pushReplacementNamed(context, '/home');
             }
-          } else {
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Login failed: invalid credentials'),
-                ),
-              );
-            }
+          } else if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Unable to find your account.')),
+            );
           }
         }
       } catch (error) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Login failed: ${error.toString()}')),
+            SnackBar(content: Text(_loginErrorMessage(error))),
           );
         }
       } finally {
@@ -172,9 +189,15 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       ),
-                      validator: (value) => value == null || value.isEmpty
-                          ? 'Please enter your phone number'
-                          : null,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter your phone number';
+                        }
+                        if (_formatPhoneNumber(value) == null) {
+                          return 'Enter a valid 8-digit Oman phone number';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 20),
                     Text(

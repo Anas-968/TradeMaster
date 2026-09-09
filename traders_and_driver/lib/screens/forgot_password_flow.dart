@@ -10,7 +10,6 @@ class ForgotPasswordFlowPage extends StatefulWidget {
 }
 
 class _ForgotPasswordFlowPageState extends State<ForgotPasswordFlowPage> {
-  final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
   final _otpController = TextEditingController();
   final _newPasswordController = TextEditingController();
@@ -40,6 +39,30 @@ class _ForgotPasswordFlowPageState extends State<ForgotPasswordFlowPage> {
     return '+$digits';
   }
 
+  bool _isStrongPassword(String password) {
+    return RegExp(
+      r'^(?=.*[a-z])(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{6,}$',
+    ).hasMatch(password);
+  }
+
+  String _resetErrorMessage(Object error, {required bool isOtpStep}) {
+    if (error is AuthException) {
+      final message = error.message.toLowerCase();
+      if (error.statusCode == '429' || message.contains('rate limit')) {
+        return 'Too many attempts. Please wait a moment and try again.';
+      }
+      if (isOtpStep &&
+          (message.contains('token') ||
+              message.contains('otp') ||
+              message.contains('expired'))) {
+        return 'That verification code is invalid or has expired.';
+      }
+    }
+    return isOtpStep
+        ? 'We could not reset your password. Please try again.'
+        : 'We could not send a code. Check the phone number and try again.';
+  }
+
   Future<void> _sendOtp() async {
     if (_phoneController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -52,6 +75,7 @@ class _ForgotPasswordFlowPageState extends State<ForgotPasswordFlowPage> {
       final formatted = _formatPhoneNumber(_phoneController.text.trim());
       _currentPhone = formatted;
       await Supabase.instance.client.auth.signInWithOtp(phone: formatted);
+      if (!mounted) return;
       setState(() {
         _otpSent = true;
       });
@@ -59,11 +83,12 @@ class _ForgotPasswordFlowPageState extends State<ForgotPasswordFlowPage> {
         context,
       ).showSnackBar(SnackBar(content: Text('OTP sent to $formatted')));
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to send OTP: ${e.toString()}')),
+        SnackBar(content: Text(_resetErrorMessage(e, isOtpStep: false))),
       );
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -75,7 +100,17 @@ class _ForgotPasswordFlowPageState extends State<ForgotPasswordFlowPage> {
       return;
     }
     if (_newPasswordController.text.isEmpty ||
-        _newPasswordController.text != _confirmController.text) {
+        !_isStrongPassword(_newPasswordController.text)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Password must be at least 6 characters and include uppercase, lowercase, and a special character.',
+          ),
+        ),
+      );
+      return;
+    }
+    if (_newPasswordController.text != _confirmController.text) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Passwords do not match')));
@@ -89,12 +124,14 @@ class _ForgotPasswordFlowPageState extends State<ForgotPasswordFlowPage> {
         token: _otpController.text.trim(),
         type: OtpType.sms,
       );
+      if (!mounted) return;
 
       if (response.user != null) {
         // Update password for the signed-in user
         await Supabase.instance.client.auth.updateUser(
           UserAttributes(password: _newPasswordController.text.trim()),
         );
+        if (!mounted) return;
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -104,18 +141,20 @@ class _ForgotPasswordFlowPageState extends State<ForgotPasswordFlowPage> {
           ),
         );
         await Supabase.instance.client.auth.signOut();
-        if (context.mounted) Navigator.pushReplacementNamed(context, '/login');
+        if (!mounted) return;
+        Navigator.pushReplacementNamed(context, '/login');
       } else {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('Verification failed')));
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Reset failed: ${e.toString()}')));
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_resetErrorMessage(e, isOtpStep: true))),
+      );
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -253,6 +292,9 @@ class _ForgotPasswordFlowPageState extends State<ForgotPasswordFlowPage> {
               onPressed: () => setState(() => _obscureNew = !_obscureNew),
             ),
             hintText: 'Enter new password',
+            helperText:
+                '6+ characters, uppercase, lowercase, and special character',
+            helperMaxLines: 2,
             filled: true,
             fillColor: Colors.grey[50],
             border: OutlineInputBorder(
