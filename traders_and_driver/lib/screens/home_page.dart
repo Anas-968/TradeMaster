@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final user = Supabase.instance.client.auth.currentUser;
+    final displayName =
+        user?.userMetadata?['full_name'] ?? user?.phone ?? 'Guest';
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
@@ -106,7 +110,7 @@ class HomePage extends StatelessWidget {
                 children: [
                   const SizedBox(height: 30),
                   Text(
-                    'Welcome to TradeMaster',
+                    'Welcome, $displayName',
                     style: GoogleFonts.poppins(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -162,7 +166,10 @@ class HomePage extends StatelessWidget {
                           },
                           style: OutlinedButton.styleFrom(
                             foregroundColor: const Color(0xFF1A237E),
-                            side: const BorderSide(color: Color(0xFF1A237E), width: 2),
+                            side: const BorderSide(
+                              color: Color(0xFF1A237E),
+                              width: 2,
+                            ),
                             padding: const EdgeInsets.symmetric(vertical: 15),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -213,7 +220,8 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildFeatureCard(BuildContext context, {
+  Widget _buildFeatureCard(
+    BuildContext context, {
     required IconData icon,
     required String title,
     required String description,

@@ -59,6 +59,14 @@ class _LoginPageState extends State<LoginPage> {
             } else {
               Navigator.pushReplacementNamed(context, '/home');
             }
+          } else {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Login failed: invalid credentials'),
+                ),
+              );
+            }
           }
         }
       } catch (error) {
