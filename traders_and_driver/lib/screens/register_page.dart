@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+enum _RegistrationErrorType { rateLimited, invalidOtp, network, unknown }
+
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
@@ -57,9 +59,64 @@ class _RegisterPageState extends State<RegisterPage> {
     return passwordRegex.hasMatch(password);
   }
 
+  _RegistrationErrorType _registrationErrorType(
+    Object error, {
+    required bool isOtpVerification,
+  }) {
+    final rawMessage = error.toString().toLowerCase();
+    if (rawMessage.contains('socketexception') ||
+        rawMessage.contains('failed host lookup') ||
+        rawMessage.contains('network is unreachable') ||
+        rawMessage.contains('connection refused') ||
+        rawMessage.contains('timeout')) {
+      return _RegistrationErrorType.network;
+    }
+
+    if (error is AuthException) {
+      final message = error.message.toLowerCase();
+
+      if (error.statusCode == '429' || message.contains('rate limit')) {
+        return _RegistrationErrorType.rateLimited;
+      }
+
+      if (isOtpVerification &&
+          (message.contains('token') ||
+              message.contains('otp') ||
+              message.contains('expired'))) {
+        return _RegistrationErrorType.invalidOtp;
+      }
+    }
+
+    return _RegistrationErrorType.unknown;
+  }
+
+  String _registrationErrorMessage(
+    Object error, {
+    required bool isOtpVerification,
+  }) {
+    switch (
+      _registrationErrorType(error, isOtpVerification: isOtpVerification)
+    ) {
+      case _RegistrationErrorType.rateLimited:
+        return 'Too many attempts. Please wait a moment and try again.';
+      case _RegistrationErrorType.invalidOtp:
+        return 'That verification code is invalid or has expired.';
+      case _RegistrationErrorType.network:
+        return 'Connection problem. Please check your internet and try again.';
+      case _RegistrationErrorType.unknown:
+        return isOtpVerification
+            ? 'We could not complete your registration. Please try again.'
+            : 'We could not send a verification code. Please try again.';
+    }
+  }
+
   // Step 1: Send OTP to verify phone number
   Future<void> _sendOtp() async {
     // Validate all fields before sending OTP
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
     if (_fullNameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter your full name')),
@@ -130,7 +187,11 @@ class _RegisterPageState extends State<RegisterPage> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to send OTP: ${error.toString()}')),
+          SnackBar(
+            content: Text(
+              _registrationErrorMessage(error, isOtpVerification: false),
+            ),
+          ),
         );
       }
     }
@@ -189,7 +250,11 @@ class _RegisterPageState extends State<RegisterPage> {
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Verification failed: ${error.toString()}')),
+          SnackBar(
+            content: Text(
+              _registrationErrorMessage(error, isOtpVerification: true),
+            ),
+          ),
         );
       }
     } finally {
