@@ -59,24 +59,8 @@ class DriverDashboard extends StatelessWidget {
         ),
         backgroundColor: const Color(0xFF1A237E),
         foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            tooltip: 'Logout',
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              try {
-                await Supabase.instance.client.auth.signOut();
-                if (context.mounted)
-                  Navigator.pushReplacementNamed(context, '/login');
-              } catch (e) {
-                if (context.mounted)
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Logout failed: ${e.toString()}')),
-                  );
-              }
-            },
-          ),
-        ],
+        automaticallyImplyLeading: false,
+        actions: [_logoutButton(context)],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -163,6 +147,37 @@ class DriverDashboard extends StatelessWidget {
       ),
     );
   }
+
+  Widget _logoutButton(BuildContext context) => IconButton(
+    tooltip: 'Logout',
+    icon: const Icon(Icons.logout),
+    onPressed: () async {
+      final shouldLogout = await _confirmLogout(context);
+      if (shouldLogout != true || !context.mounted) return;
+      await Supabase.instance.client.auth.signOut();
+      if (context.mounted) {
+        Navigator.pushReplacementNamed(context, '/login');
+      }
+    },
+  );
+
+  Future<bool?> _confirmLogout(BuildContext context) => showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('Log out?'),
+      content: const Text('You will need to log in again to continue.'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext, false),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(dialogContext, true),
+          child: const Text('Log out'),
+        ),
+      ],
+    ),
+  );
 
   Widget _buildStatCard(
     IconData icon,
