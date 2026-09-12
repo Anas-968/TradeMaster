@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'reset_password_page.dart';
 
 class ForgotPasswordFlowPage extends StatefulWidget {
   const ForgotPasswordFlowPage({super.key});
@@ -12,13 +13,8 @@ class ForgotPasswordFlowPage extends StatefulWidget {
 class _ForgotPasswordFlowPageState extends State<ForgotPasswordFlowPage> {
   final _phoneController = TextEditingController();
   final _otpController = TextEditingController();
-  final _newPasswordController = TextEditingController();
-  final _confirmController = TextEditingController();
-
   bool _isLoading = false;
   bool _otpSent = false;
-  bool _obscureNew = true;
-  bool _obscureConfirm = true;
 
   String? _currentPhone;
 
@@ -26,8 +22,6 @@ class _ForgotPasswordFlowPageState extends State<ForgotPasswordFlowPage> {
   void dispose() {
     _phoneController.dispose();
     _otpController.dispose();
-    _newPasswordController.dispose();
-    _confirmController.dispose();
     super.dispose();
   }
 
@@ -37,12 +31,6 @@ class _ForgotPasswordFlowPageState extends State<ForgotPasswordFlowPage> {
     if (digits.startsWith('968') && digits.length == 11) return '+$digits';
     if (raw.startsWith('+')) return raw;
     return '+$digits';
-  }
-
-  bool _isStrongPassword(String password) {
-    return RegExp(
-      r'^(?=.*[a-z])(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{6,}$',
-    ).hasMatch(password);
   }
 
   String _resetErrorMessage(Object error, {required bool isOtpStep}) {
@@ -92,33 +80,15 @@ class _ForgotPasswordFlowPageState extends State<ForgotPasswordFlowPage> {
     }
   }
 
-  Future<void> _verifyAndReset() async {
+  Future<void> _verifyOtp() async {
     if (_otpController.text.trim().isEmpty) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Please enter OTP')));
       return;
     }
-    if (_newPasswordController.text.isEmpty ||
-        !_isStrongPassword(_newPasswordController.text)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Password must be at least 6 characters and include uppercase, lowercase, and a special character.',
-          ),
-        ),
-      );
-      return;
-    }
-    if (_newPasswordController.text != _confirmController.text) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Passwords do not match')));
-      return;
-    }
     setState(() => _isLoading = true);
     try {
-      // Verify OTP (this will sign in the user)
       final response = await Supabase.instance.client.auth.verifyOTP(
         phone: _currentPhone!,
         token: _otpController.text.trim(),
@@ -127,22 +97,9 @@ class _ForgotPasswordFlowPageState extends State<ForgotPasswordFlowPage> {
       if (!mounted) return;
 
       if (response.user != null) {
-        // Update password for the signed-in user
-        await Supabase.instance.client.auth.updateUser(
-          UserAttributes(password: _newPasswordController.text.trim()),
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const ResetPasswordPage()),
         );
-        if (!mounted) return;
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Password updated. Please login with your new password.',
-            ),
-          ),
-        );
-        await Supabase.instance.client.auth.signOut();
-        if (!mounted) return;
-        Navigator.pushReplacementNamed(context, '/login');
       } else {
         ScaffoldMessenger.of(
           context,
@@ -270,79 +227,12 @@ class _ForgotPasswordFlowPageState extends State<ForgotPasswordFlowPage> {
           ),
         ),
         const SizedBox(height: 16),
-        Text(
-          'New Password',
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
-            color: const Color(0xFF1A237E),
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: _newPasswordController,
-          obscureText: _obscureNew,
-          decoration: InputDecoration(
-            prefixIcon: const Icon(
-              Icons.lock_outline,
-              color: Color(0xFF1A237E),
-            ),
-            suffixIcon: IconButton(
-              icon: Icon(_obscureNew ? Icons.visibility_off : Icons.visibility),
-              onPressed: () => setState(() => _obscureNew = !_obscureNew),
-            ),
-            hintText: 'Enter new password',
-            helperText:
-                '6+ characters, uppercase, lowercase, and special character',
-            helperMaxLines: 2,
-            filled: true,
-            fillColor: Colors.grey[50],
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          'Confirm Password',
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
-            color: const Color(0xFF1A237E),
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: _confirmController,
-          obscureText: _obscureConfirm,
-          decoration: InputDecoration(
-            prefixIcon: const Icon(
-              Icons.lock_outline,
-              color: Color(0xFF1A237E),
-            ),
-            suffixIcon: IconButton(
-              icon: Icon(
-                _obscureConfirm ? Icons.visibility_off : Icons.visibility,
-              ),
-              onPressed: () =>
-                  setState(() => _obscureConfirm = !_obscureConfirm),
-            ),
-            hintText: 'Confirm new password',
-            filled: true,
-            fillColor: Colors.grey[50],
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-          ),
-        ),
         const SizedBox(height: 24),
         SizedBox(
           width: double.infinity,
           height: 52,
           child: ElevatedButton(
-            onPressed: _isLoading ? null : _verifyAndReset,
+            onPressed: _isLoading ? null : _verifyOtp,
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF1A237E),
               shape: RoundedRectangleBorder(
@@ -352,7 +242,7 @@ class _ForgotPasswordFlowPageState extends State<ForgotPasswordFlowPage> {
             child: _isLoading
                 ? const CircularProgressIndicator(color: Colors.white)
                 : Text(
-                    'Reset Password',
+                    'Verify OTP',
                     style: GoogleFonts.poppins(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
