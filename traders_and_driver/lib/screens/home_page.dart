@@ -108,11 +108,12 @@ class HomePage extends StatelessWidget {
               padding: const EdgeInsets.all(20.0),
               child: Column(
                 children: [
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 15),
                   Text(
-                    'Welcome, $displayName',
+                    'Welcome To TradeMaster',
+                    textAlign: TextAlign.center,
                     style: GoogleFonts.poppins(
-                      fontSize: 24,
+                      fontSize: 26,
                       fontWeight: FontWeight.bold,
                       color: const Color(0xFF1A237E),
                     ),
