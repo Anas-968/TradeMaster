@@ -7,6 +7,7 @@ import 'screens/home_page.dart';
 import 'screens/change_password_page.dart';
 import 'screens/login_page.dart';
 import 'screens/register_page.dart';
+import 'screens/reset_password_page.dart';
 import 'screens/trader_page.dart';
 
 void main() async {
@@ -34,6 +35,8 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
         '/forgot-password': (context) => const ForgotPasswordFlowPage(),
+        '/reset-password': (context) =>
+            const ResetPasswordPage(returnToLoginOnBack: false),
         '/trader': (context) => const TraderPage(),
         '/driver': (context) => const DriverPage(),
         '/admin': (context) => const AdminPage(),

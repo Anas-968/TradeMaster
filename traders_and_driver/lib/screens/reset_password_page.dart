@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Shown only after the phone OTP has been successfully verified.
 class ResetPasswordPage extends StatefulWidget {
-  const ResetPasswordPage({super.key});
+  const ResetPasswordPage({super.key, this.returnToLoginOnBack = true});
+
+  /// The forgot-password flow must return to login; signed-in users return
+  /// to their dashboard instead.
+  final bool returnToLoginOnBack;
 
   @override
   State<ResetPasswordPage> createState() => _ResetPasswordPageState();
@@ -29,6 +32,10 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
   ).hasMatch(password);
 
   Future<void> _goBackToLogin() async {
+    if (!widget.returnToLoginOnBack) {
+      Navigator.pop(context);
+      return;
+    }
     await Supabase.instance.client.auth.signOut();
     if (!mounted) return;
     Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
@@ -98,7 +105,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
           onPressed: _isLoading ? null : _goBackToLogin,
         ),
         title: Text(
-          'Create New Password',
+          widget.returnToLoginOnBack ? 'Create New Password' : 'Reset Password',
           style: GoogleFonts.poppins(
             color: const Color(0xFF1A237E),
             fontWeight: FontWeight.bold,
@@ -121,7 +128,9 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Your phone number has been verified.',
+                widget.returnToLoginOnBack
+                    ? 'Your phone number has been verified.'
+                    : 'Choose a new password for your account.',
                 style: GoogleFonts.poppins(color: Colors.grey[600]),
               ),
               const SizedBox(height: 32),

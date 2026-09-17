@@ -63,7 +63,7 @@ class TraderDashboard extends StatelessWidget {
         backgroundColor: const Color(0xFF1A237E),
         foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
-        actions: [_logoutButton(context)],
+        actions: [_resetPasswordButton(context), _logoutButton(context)],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -168,6 +168,12 @@ class TraderDashboard extends StatelessWidget {
         Navigator.pushReplacementNamed(context, '/login');
       }
     },
+  );
+
+  Widget _resetPasswordButton(BuildContext context) => IconButton(
+    tooltip: 'Reset password',
+    icon: const Icon(Icons.lock_reset),
+    onPressed: () => Navigator.pushNamed(context, '/reset-password'),
   );
 
   Future<bool?> _confirmLogout(BuildContext context) => showDialog<bool>(
