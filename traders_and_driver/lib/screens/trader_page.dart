@@ -454,8 +454,72 @@ class _AddProductPageState extends State<AddProductPage> {
   );
 }
 
-class TraderProductsPage extends StatelessWidget {
+class TraderProductsPage extends StatefulWidget {
   const TraderProductsPage({super.key});
+
+  @override
+  State<TraderProductsPage> createState() => _TraderProductsPageState();
+}
+
+class _TraderProductsPageState extends State<TraderProductsPage> {
+  Future<List<Map<String, dynamic>>> _loadRows() async =>
+      await Supabase.instance.client.from('loads').select()
+          .eq('trader_id', Supabase.instance.client.auth.currentUser!.id)
+          .order('created_at', ascending: false);
+
+  late Future<List<Map<String, dynamic>>> _rows = _loadRows();
+
+  Future<void> _edit(Map<String, dynamic> load) async {
+    final fields = [
+      TextEditingController(text: load['product']?.toString()),
+      TextEditingController(text: load['description']?.toString()),
+      TextEditingController(text: load['pickup_location']?.toString()),
+      TextEditingController(text: load['delivery_location']?.toString()),
+      TextEditingController(text: load['weight']?.toString()),
+    ];
+    final labels = ['Product', 'Description', 'Pickup location', 'Delivery location', 'Weight'];
+    final confirmed = await showDialog<bool>(context: context, builder: (context) => AlertDialog(
+      title: Text('Edit load #${load['id']}'),
+      content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
+        for (var i = 0; i < fields.length; i++) Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: TextField(controller: fields[i], maxLines: i == 1 ? 3 : 1,
+            decoration: InputDecoration(labelText: labels[i], border: const OutlineInputBorder())),
+        ),
+      ])),
+      actions: [TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+        FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Save'))],
+    ));
+    if (confirmed == true) {
+      try {
+        await Supabase.instance.client.rpc('update_available_load', params: {
+          'p_load_id': load['id'], 'p_product': fields[0].text.trim(),
+          'p_description': fields[1].text.trim(), 'p_pickup_location': fields[2].text.trim(),
+          'p_delivery_location': fields[3].text.trim(), 'p_weight': fields[4].text.trim(),
+        });
+        setState(() => _rows = _loadRows());
+      } catch (e) { _message('Could not update load: $e'); }
+    }
+    for (final field in fields) { field.dispose(); }
+  }
+
+  Future<void> _delete(Map<String, dynamic> load) async {
+    final confirmed = await showDialog<bool>(context: context, builder: (context) => AlertDialog(
+      title: const Text('Delete this load?'),
+      content: Text('Load #${load['id']} will be removed if no driver has accepted it.'),
+      actions: [TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+        FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete'))],
+    ));
+    if (confirmed != true) return;
+    try {
+      await Supabase.instance.client.rpc('delete_available_load', params: {'p_load_id': load['id']});
+      setState(() => _rows = _loadRows());
+    } catch (e) { _message('Could not delete load: $e'); }
+  }
+
+  void _message(String message) {
+    if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -469,11 +533,7 @@ class TraderProductsPage extends StatelessWidget {
         foregroundColor: Colors.white,
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: Supabase.instance.client
-            .from('loads')
-            .select()
-            .eq('trader_id', Supabase.instance.client.auth.currentUser!.id)
-            .order('created_at', ascending: false),
+        future: _rows,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting)
             return const Center(child: CircularProgressIndicator());
@@ -502,6 +562,15 @@ class TraderProductsPage extends StatelessWidget {
                     '${load['pickup_location']} → ${load['delivery_location']}\n${load['status']}',
                   ),
                   isThreeLine: true,
+                  trailing: load['status'] == 'Available'
+                      ? PopupMenuButton<String>(
+                          onSelected: (action) => action == 'edit' ? _edit(load) : _delete(load),
+                          itemBuilder: (_) => const [
+                            PopupMenuItem(value: 'edit', child: Text('Edit')),
+                            PopupMenuItem(value: 'delete', child: Text('Delete')),
+                          ],
+                        )
+                      : null,
                 ),
               );
             },

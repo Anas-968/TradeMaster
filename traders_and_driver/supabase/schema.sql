@@ -24,8 +24,11 @@ create table if not exists public.loads (
   status text not null default 'Available'
     check (status in ('Available', 'Accepted', 'In transit', 'Delivered', 'Cancelled')),
   created_at timestamptz not null default now(),
-  accepted_at timestamptz
+  accepted_at timestamptz,
+  delivered_at timestamptz
 );
+
+alter table public.loads add column if not exists delivered_at timestamptz;
 
 create index if not exists loads_status_created_idx on public.loads(status, created_at desc);
 create index if not exists loads_trader_idx on public.loads(trader_id, created_at desc);
@@ -96,6 +99,60 @@ end;
 $$;
 revoke all on function public.accept_load(bigint) from public;
 grant execute on function public.accept_load(bigint) to authenticated;
+
+-- Traders may edit or remove only their own loads while they are still available.
+create or replace function public.update_available_load(
+  p_load_id bigint, p_product text, p_description text,
+  p_pickup_location text, p_delivery_location text, p_weight text
+) returns bigint language plpgsql security definer set search_path = '' as $$
+declare changed_id bigint;
+begin
+  if auth.uid() is null or not exists (
+    select 1 from public.profiles p where p.id = auth.uid() and p.user_type = 'Trader' and p.is_active
+  ) then raise exception 'Only active traders may update loads'; end if;
+  update public.loads set product = p_product, description = coalesce(p_description, ''),
+    pickup_location = p_pickup_location, delivery_location = p_delivery_location, weight = p_weight
+    where id = p_load_id and trader_id = auth.uid() and status = 'Available'
+    returning id into changed_id;
+  if changed_id is null then raise exception 'Only your unaccepted loads can be updated'; end if;
+  return changed_id;
+end;
+$$;
+revoke all on function public.update_available_load(bigint,text,text,text,text,text) from public;
+grant execute on function public.update_available_load(bigint,text,text,text,text,text) to authenticated;
+
+create or replace function public.delete_available_load(p_load_id bigint)
+returns bigint language plpgsql security definer set search_path = '' as $$
+declare deleted_id bigint;
+begin
+  if auth.uid() is null or not exists (
+    select 1 from public.profiles p where p.id = auth.uid() and p.user_type = 'Trader' and p.is_active
+  ) then raise exception 'Only active traders may delete loads'; end if;
+  delete from public.loads where id = p_load_id and trader_id = auth.uid() and status = 'Available'
+    returning id into deleted_id;
+  if deleted_id is null then raise exception 'Only your unaccepted loads can be deleted'; end if;
+  return deleted_id;
+end;
+$$;
+revoke all on function public.delete_available_load(bigint) from public;
+grant execute on function public.delete_available_load(bigint) to authenticated;
+
+create or replace function public.complete_load(p_load_id bigint)
+returns bigint language plpgsql security definer set search_path = '' as $$
+declare completed_id bigint;
+begin
+  if auth.uid() is null or not exists (
+    select 1 from public.profiles p where p.id = auth.uid() and p.user_type = 'Driver' and p.is_active
+  ) then raise exception 'Only active drivers may complete loads'; end if;
+  update public.loads set status = 'Delivered', delivered_at = now()
+    where id = p_load_id and driver_id = auth.uid() and status in ('Accepted', 'In transit')
+    returning id into completed_id;
+  if completed_id is null then raise exception 'Only your accepted loads can be marked delivered'; end if;
+  return completed_id;
+end;
+$$;
+revoke all on function public.complete_load(bigint) from public;
+grant execute on function public.complete_load(bigint) to authenticated;
 
 -- Auth signup hook: create profiles from user metadata, if the hook is enabled.
 create or replace function public.handle_new_user()

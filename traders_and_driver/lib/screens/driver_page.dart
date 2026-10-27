@@ -65,6 +65,7 @@ class DriverLoad {
     required this.urgent,
     this.status = 'Available',
     this.driverId,
+    this.deliveredAt,
   });
 
   final int id;
@@ -75,6 +76,7 @@ class DriverLoad {
   final bool urgent;
   String status;
   final String? driverId;
+  final DateTime? deliveredAt;
 
   factory DriverLoad.fromMap(Map<String, dynamic> row) => DriverLoad(
     id: (row['id'] as num).toInt(),
@@ -85,6 +87,7 @@ class DriverLoad {
     urgent: false,
     status: row['status']?.toString() ?? 'Available',
     driverId: row['driver_id']?.toString(),
+    deliveredAt: DateTime.tryParse(row['delivered_at']?.toString() ?? ''),
   );
 }
 
@@ -127,9 +130,14 @@ class DriverLoadStore extends ChangeNotifier {
   List<DriverLoad> get acceptedLoads => loads
       .where(
         (load) =>
-            load.status == 'Accepted' &&
+            (load.status == 'Accepted' || load.status == 'In transit') &&
             load.driverId == Supabase.instance.client.auth.currentUser?.id,
       )
+      .toList();
+
+  List<DriverLoad> get deliveredLoads => loads
+      .where((load) => load.status == 'Delivered' &&
+          load.driverId == Supabase.instance.client.auth.currentUser?.id)
       .toList();
 
   Future<void> acceptLoad(DriverLoad load) async {
@@ -152,6 +160,17 @@ class DriverLoadStore extends ChangeNotifier {
         status: 'Accepted',
         driverId: userId,
       );
+    }
+    notifyListeners();
+  }
+
+  Future<void> completeLoad(DriverLoad load) async {
+    await Supabase.instance.client.rpc('complete_load', params: {'p_load_id': load.id});
+    final i = loads.indexWhere((item) => item.id == load.id);
+    if (i >= 0) {
+      loads[i] = DriverLoad(id: load.id, product: load.product, from: load.from,
+        to: load.to, weight: load.weight, urgent: load.urgent,
+        status: 'Delivered', driverId: load.driverId, deliveredAt: DateTime.now());
     }
     notifyListeners();
   }
@@ -278,6 +297,10 @@ class DriverDashboard extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   ...store.loads
+                      .where((load) =>
+                          load.status == 'Available' ||
+                          load.status == 'Accepted' ||
+                          load.status == 'In transit')
                       .take(3)
                       .map(
                         (load) => Card(
@@ -504,7 +527,7 @@ Future<void> showLoadDetails(BuildContext context, DriverLoad load) async {
     context: context,
     builder: (dialogContext) => StatefulBuilder(
       builder: (dialogContext, setDialogState) {
-        final accepted = load.status == 'Accepted';
+        final accepted = load.status == 'Accepted' || load.status == 'In transit';
         return AlertDialog(
           title: Text('Load #${load.id} details'),
           content: SingleChildScrollView(
@@ -559,6 +582,8 @@ Future<void> showLoadDetails(BuildContext context, DriverLoad load) async {
                 icon: const Icon(Icons.check),
                 label: const Text('Accept Order'),
               )
+            else if (load.status == 'Delivered')
+              const Chip(avatar: Icon(Icons.check_circle, color: Colors.green), label: Text('Delivered'))
             else
               const Chip(
                 avatar: Icon(Icons.check_circle, color: Colors.green),
@@ -694,58 +719,140 @@ class DriverJobsPage extends StatelessWidget {
   const DriverJobsPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'My Jobs',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
-      ),
-      body: AnimatedBuilder(
-        animation: DriverLoadStore.instance,
-        builder: (context, _) {
-          final store = DriverLoadStore.instance;
-          final jobs = store.acceptedLoads;
-          if (store.isLoading && store.loads.isEmpty)
-            return const Center(child: CircularProgressIndicator());
-          if (jobs.isEmpty) {
-            return const Center(
-              child: Text('You have not accepted any loads yet.'),
-            );
-          }
-
-          return ListView.builder(
-            padding: const EdgeInsets.all(8),
-            itemCount: jobs.length,
-            itemBuilder: (context, index) {
-              final load = jobs[index];
-              return Card(
-                margin: const EdgeInsets.only(bottom: 10),
-                child: ListTile(
-                  leading: const Icon(Icons.work_history, color: primaryColor),
-                  title: Text(
-                    'Load #${load.id} â€” ${load.product}',
-                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
-                  ),
-                  subtitle: Text(
-                    '${load.from} â†’ ${load.to}\n'
-                    'Status: ${load.status}',
-                  ),
-                  isThreeLine: true,
-                  trailing: IconButton(
-                    tooltip: 'View details',
-                    icon: const Icon(Icons.info_outline),
-                    onPressed: () => showLoadDetails(context, load),
-                  ),
-                ),
-              );
+  Widget build(BuildContext context) => DefaultTabController(
+        length: 2,
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text('My Jobs', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+            backgroundColor: primaryColor,
+            foregroundColor: Colors.white,
+            bottom: const TabBar(tabs: [Tab(text: 'Active'), Tab(text: 'Delivered')]),
+          ),
+          body: AnimatedBuilder(
+            animation: DriverLoadStore.instance,
+            builder: (context, _) {
+              final store = DriverLoadStore.instance;
+              if (store.isLoading && store.loads.isEmpty) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              return TabBarView(children: [
+                _activeJobs(context, store),
+                _deliveredJobs(store),
+              ]);
             },
-          );
-        },
+          ),
+        ),
+      );
+
+  Widget _activeJobs(BuildContext context, DriverLoadStore store) {
+    final jobs = store.acceptedLoads;
+    if (jobs.isEmpty) return const Center(child: Text('No active jobs.'));
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: jobs.length,
+      itemBuilder: (context, index) {
+        final load = jobs[index];
+        return Card(
+          margin: const EdgeInsets.only(bottom: 12),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                const Icon(Icons.local_shipping_outlined, color: primaryColor),
+                const SizedBox(width: 10),
+                Expanded(child: Text(load.product, style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 16))),
+                Chip(label: Text(load.status)),
+              ]),
+              const SizedBox(height: 8),
+              Text('Load #${load.id}  •  ${load.weight}'),
+              const SizedBox(height: 6),
+              Text('${load.from}  ?  ${load.to}'),
+              const SizedBox(height: 14),
+              SizedBox(width: double.infinity, child: FilledButton.icon(
+                onPressed: () => _confirmDelivered(context, store, load),
+                icon: const Icon(Icons.check_circle_outline),
+                label: const Text('Confirm delivery'),
+              )),
+            ]),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _deliveredJobs(DriverLoadStore store) {
+    final jobs = store.deliveredLoads;
+    if (jobs.isEmpty) return const Center(child: Text('Delivered orders will appear here.'));
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: jobs.length,
+      itemBuilder: (context, index) {
+        final load = jobs[index];
+        final date = load.deliveredAt?.toLocal();
+        final completed = date == null
+            ? 'Delivery confirmed'
+            : 'Delivered ${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')} at ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+        return Card(
+          margin: const EdgeInsets.only(bottom: 12),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                const Icon(Icons.receipt_long, color: Colors.green),
+                const SizedBox(width: 10),
+                Expanded(child: Text('Delivery receipt  •  #${load.id}', style: GoogleFonts.poppins(fontWeight: FontWeight.w600))),
+                const Icon(Icons.verified, color: Colors.green),
+              ]),
+              const Divider(height: 24),
+              _receiptRow('Item', load.product),
+              _receiptRow('Route', '${load.from} ? ${load.to}'),
+              _receiptRow('Weight', load.weight.isEmpty ? 'Not specified' : load.weight),
+              _receiptRow('Status', 'Delivered'),
+              _receiptRow('Completed', completed),
+            ]),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _receiptRow(String label, String value) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          SizedBox(width: 92, child: Text(label, style: const TextStyle(color: Colors.black54))),
+          Expanded(child: Text(value, style: const TextStyle(fontWeight: FontWeight.w500))),
+        ]),
+      );
+
+  Future<void> _confirmDelivered(BuildContext context, DriverLoadStore store, DriverLoad load) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Confirm delivery?'),
+        content: Text('Confirm that “${load.product}” (load #${load.id}) has reached ${load.to}.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Not yet')),
+          FilledButton.icon(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            icon: const Icon(Icons.check),
+            label: const Text('Confirm delivered'),
+          ),
+        ],
       ),
     );
+    if (confirmed != true) return;
+    try {
+      await store.completeLoad(load);
+      if (context.mounted) {
+        DefaultTabController.of(context).animateTo(1);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Delivery confirmed. Receipt added to Delivered.')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not confirm delivery: $e')));
+      }
+    }
   }
 }
