@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'admin_page.dart';
+import 'driver_page.dart';
+import 'home_page.dart';
+import 'trader_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -33,6 +37,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   String _loginErrorMessage(Object error) {
+    debugPrint('Login failed: $error');
     if (error is AuthException) {
       final message = error.message.toLowerCase();
       if (error.statusCode == '429' || message.contains('rate limit')) {
@@ -42,66 +47,112 @@ class _LoginPageState extends State<LoginPage> {
           message.contains('invalid credentials')) {
         return 'The phone number or password is incorrect.';
       }
+      return 'Supabase login error${error.statusCode == null ? '' : ' (${error.statusCode})'}: ${error.message}';
     }
-    return 'We could not sign you in. Check your connection and try again.';
+    final details = error.toString();
+    return 'Login error: ${details.length > 240 ? '${details.substring(0, 240)}…' : details}';
   }
 
   Future<void> _login() async {
-    if (_formKey.currentState!.validate()) {
-      final formattedPhone = _formatPhoneNumber(_phoneController.text.trim());
-      if (formattedPhone == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Enter a valid 8-digit Oman phone number.'),
-          ),
-        );
+    if (!_formKey.currentState!.validate()) return;
+
+    final formattedPhone = _formatPhoneNumber(_phoneController.text.trim());
+    if (formattedPhone == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter a valid 8-digit Oman phone number.')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      final response = await Supabase.instance.client.auth.signInWithPassword(
+        phone: formattedPhone,
+        password: _passwordController.text,
+      );
+      final user = response.user;
+      if (user == null) return;
+
+      Map<String, dynamic>? profile;
+      Object? profileError;
+      try {
+        profile = await Supabase.instance.client
+            .from('profiles')
+            .select('is_active,user_type')
+            .eq('id', user.id)
+            .maybeSingle();
+      } catch (error) {
+        profileError = error;
+        debugPrint('Could not check profile during login: $error');
+      }
+
+      if (profile != null && profile['is_active'] == false) {
+        await Supabase.instance.client.auth.signOut();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('This account has been suspended. Contact support.'),
+            ),
+          );
+        }
         return;
       }
 
-      setState(() => _isLoading = true);
-      try {
-        final response = await Supabase.instance.client.auth.signInWithPassword(
-          phone: formattedPhone,
-          password: _passwordController.text,
-        );
+      final profileRole = (profile?['user_type'] as String?)?.trim().toLowerCase();
+      final metadataRole = (user.userMetadata?['user_type'] as String?)
+          ?.trim()
+          .toLowerCase();
+      final adminMetadata = user.appMetadata['is_admin'];
+      final isAdmin = profileRole == 'admin' ||
+          adminMetadata == true ||
+          adminMetadata?.toString().toLowerCase() == 'true';
+      final userType = profileRole ?? metadataRole;
 
-        if (response.user != null) {
-          final userType = response.user!.userMetadata?['user_type'] as String?;
-          final isAdmin =
-              response.user!.userMetadata?['is_admin'] as bool? ?? false;
+      debugPrint(
+        'Login role routing: profileRole=$profileRole, '
+        'metadataRole=$metadataRole, isAdmin=$isAdmin, '
+        'profileError=$profileError',
+      );
 
-          if (mounted) {
-            if (isAdmin) {
-              Navigator.pushReplacementNamed(context, '/admin');
-            } else if (userType == 'Trader') {
-              Navigator.pushReplacementNamed(context, '/trader');
-            } else if (userType == 'Driver') {
-              Navigator.pushReplacementNamed(context, '/driver');
-            } else {
-              Navigator.pushReplacementNamed(context, '/home');
-            }
-          } else if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Unable to find your account.')),
-            );
-          }
-        }
-      } catch (error) {
+      if (profileError != null && !isAdmin) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(_loginErrorMessage(error))),
+            const SnackBar(
+              content: Text(
+                'Could not read your account role. Check profiles table access and try again.',
+              ),
+            ),
           );
         }
-      } finally {
-        if (mounted) setState(() => _isLoading = false);
+        return;
       }
+
+      if (mounted) {
+        final Widget destination = isAdmin
+            ? const AdminPage()
+            : userType == 'trader'
+            ? const TraderPage()
+            : userType == 'driver'
+            ? const DriverPage()
+            : const HomePage();
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute<void>(builder: (_) => destination),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(_loginErrorMessage(error))));
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),

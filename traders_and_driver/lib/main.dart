@@ -9,6 +9,7 @@ import 'screens/login_page.dart';
 import 'screens/register_page.dart';
 import 'screens/reset_password_page.dart';
 import 'screens/trader_page.dart';
+import 'theme_controller.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,23 +26,40 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'TradeMaster',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.blue, fontFamily: 'Poppins'),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const HomePage(),
-        '/login': (context) => const LoginPage(),
-        '/register': (context) => const RegisterPage(),
-        '/forgot-password': (context) => const ForgotPasswordFlowPage(),
-        '/reset-password': (context) =>
-            const ResetPasswordPage(returnToLoginOnBack: false),
-        '/trader': (context) => const TraderPage(),
-        '/driver': (context) => const DriverPage(),
-        '/admin': (context) => const AdminPage(),
-        '/change-password': (context) => const ChangePasswordPage(),
-      },
+    return AnimatedBuilder(
+      animation: AppThemeController.instance,
+      builder: (context, _) => MaterialApp(
+        title: 'TradeMaster',
+        debugShowCheckedModeBanner: false,
+        themeMode: AppThemeController.instance.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1A237E)),
+          fontFamily: 'Poppins',
+          useMaterial3: true,
+        ),
+        darkTheme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFF7986CB),
+            brightness: Brightness.dark,
+          ),
+          fontFamily: 'Poppins',
+          useMaterial3: true,
+        ),
+        initialRoute: '/',
+        routes: {
+          '/': (context) => const HomePage(),
+          '/home': (context) => const HomePage(),
+          '/login': (context) => const LoginPage(),
+          '/register': (context) => const RegisterPage(),
+          '/forgot-password': (context) => const ForgotPasswordFlowPage(),
+          '/reset-password': (context) =>
+              const ResetPasswordPage(returnToLoginOnBack: false),
+          '/trader': (context) => const TraderPage(),
+          '/driver': (context) => const DriverPage(),
+          '/admin': (context) => const AdminPage(),
+          '/change-password': (context) => const ChangePasswordPage(),
+        },
+      ),
     );
   }
 }

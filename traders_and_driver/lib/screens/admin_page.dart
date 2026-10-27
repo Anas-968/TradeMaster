@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../theme_controller.dart';
 
 class AdminPage extends StatefulWidget {
   const AdminPage({super.key});
@@ -60,76 +62,107 @@ class AdminDashboard extends StatelessWidget {
         backgroundColor: const Color(0xFF1A237E),
         foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
-        actions: [_resetPasswordButton(context), _logoutButton(context)],
+        actions: [const ThemeToggleButton(), _resetPasswordButton(context), _logoutButton(context)],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Welcome, $displayName',
-              style: GoogleFonts.poppins(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFF1A237E),
+      body: FutureBuilder<Map<String, int>>(
+        future: _loadAdminMetrics(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting)
+            return const Center(child: CircularProgressIndicator());
+          if (snapshot.hasError)
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  'Apply supabase/schema.sql and confirm administrator access.\n\n${snapshot.error}',
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-            GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 1.3,
+            );
+          final metrics = snapshot.data!;
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildAdminCard(
-                  Icons.person,
-                  'Total Users',
-                  '156',
-                  Colors.blue,
+                Text(
+                  'Welcome, $displayName',
+                  style: GoogleFonts.poppins(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF1A237E),
+                  ),
                 ),
-                _buildAdminCard(Icons.business, 'Traders', '89', Colors.green),
-                _buildAdminCard(
-                  Icons.local_shipping,
-                  'Drivers',
-                  '67',
-                  Colors.orange,
+                const SizedBox(height: 24),
+                GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 1.3,
+                  children: [
+                    _buildAdminCard(
+                      Icons.person,
+                      'Total Users',
+                      '${metrics['users']}',
+                      Colors.blue,
+                    ),
+                    _buildAdminCard(
+                      Icons.business,
+                      'Traders',
+                      '${metrics['traders']}',
+                      Colors.green,
+                    ),
+                    _buildAdminCard(
+                      Icons.local_shipping,
+                      'Drivers',
+                      '${metrics['drivers']}',
+                      Colors.orange,
+                    ),
+                    _buildAdminCard(
+                      Icons.shopping_cart,
+                      'Active Orders',
+                      '${metrics['activeLoads']}',
+                      Colors.purple,
+                    ),
+                  ],
                 ),
-                _buildAdminCard(
-                  Icons.shopping_cart,
-                  'Active Orders',
-                  '34',
-                  Colors.purple,
+                const SizedBox(height: 24),
+                Text(
+                  'Marketplace activity',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 220,
+                  child: PieChart(
+                    PieChartData(
+                      sectionsSpace: 4,
+                      centerSpaceRadius: 40,
+                      sections: [
+                        PieChartSectionData(
+                          value: metrics['traders']!.toDouble(),
+                          title: 'Traders',
+                          color: Colors.green,
+                          radius: 58,
+                        ),
+                        PieChartSectionData(
+                          value: metrics['drivers']!.toDouble(),
+                          title: 'Drivers',
+                          color: Colors.orange,
+                          radius: 58,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 24),
-            Text(
-              'Recent Activities',
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: 4,
-              itemBuilder: (context, index) => ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: const Color(0xFF1A237E),
-                  child: Text('${index + 1}'),
-                ),
-                title: Text('User action ${index + 1}'),
-                subtitle: Text('Just now'),
-                trailing: const Icon(Icons.arrow_forward),
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -204,8 +237,59 @@ class AdminDashboard extends StatelessWidget {
   }
 }
 
-class AdminUsersPage extends StatelessWidget {
+Future<Map<String, int>> _loadAdminMetrics() async {
+  final db = Supabase.instance.client;
+  final profiles = await db.from('profiles').select('user_type');
+  final loads = await db.from('loads').select('status');
+  final users = List<Map<String, dynamic>>.from(profiles);
+  final jobs = List<Map<String, dynamic>>.from(loads);
+  return {
+    'users': users.length,
+    'traders': users.where((u) => u['user_type'] == 'Trader').length,
+    'drivers': users.where((u) => u['user_type'] == 'Driver').length,
+    'activeLoads': jobs
+        .where(
+          (job) =>
+              job['status'] == 'Available' ||
+              job['status'] == 'Accepted' ||
+              job['status'] == 'In transit',
+        )
+        .length,
+  };
+}
+
+class AdminUsersPage extends StatefulWidget {
   const AdminUsersPage({super.key});
+
+  @override
+  State<AdminUsersPage> createState() => _AdminUsersPageState();
+}
+
+class _AdminUsersPageState extends State<AdminUsersPage> {
+  late Future<List<Map<String, dynamic>>> _users = _loadUsers();
+
+  Future<List<Map<String, dynamic>>> _loadUsers() async {
+    final data = await Supabase.instance.client
+        .from('profiles')
+        .select()
+        .order('created_at', ascending: false);
+    return List<Map<String, dynamic>>.from(data);
+  }
+
+  Future<void> _toggle(Map<String, dynamic> user, bool active) async {
+    try {
+      await Supabase.instance.client
+          .from('profiles')
+          .update({'is_active': active})
+          .eq('id', user['id']);
+      if (mounted) setState(() => _users = _loadUsers());
+    } catch (error) {
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not update user: $error')),
+        );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -219,32 +303,60 @@ class AdminUsersPage extends StatelessWidget {
         foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
       ),
-      body: ListView.builder(
-        itemCount: 10,
-        itemBuilder: (context, index) => Card(
-          margin: const EdgeInsets.all(8),
-          child: ListTile(
-            leading: CircleAvatar(child: Text('${index + 1}')),
-            title: Text(
-              'User ${index + 1}',
-              style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
-            ),
-            subtitle: Text(index % 2 == 0 ? 'Trader' : 'Driver'),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.blue),
-                  onPressed: () {},
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: _users,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting)
+            return const Center(child: CircularProgressIndicator());
+          if (snapshot.hasError)
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  'Could not load users. Apply supabase/schema.sql and configure administrator access.\n\n${snapshot.error}',
                 ),
-                IconButton(
-                  icon: const Icon(Icons.block, color: Colors.red),
-                  onPressed: () {},
-                ),
-              ],
+              ),
+            );
+          final users = snapshot.data ?? [];
+          if (users.isEmpty)
+            return const Center(child: Text('No users found.'));
+          return RefreshIndicator(
+            onRefresh: () async {
+              setState(() => _users = _loadUsers());
+              await _users;
+            },
+            child: ListView.builder(
+              itemCount: users.length,
+              itemBuilder: (context, index) {
+                final user = users[index];
+                final name = user['full_name']?.toString() ?? '';
+                final active = user['is_active'] as bool? ?? true;
+                return Card(
+                  margin: const EdgeInsets.all(8),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      child: Text(name.isEmpty ? '?' : name[0].toUpperCase()),
+                    ),
+                    title: Text(
+                      name.isEmpty ? user['phone']?.toString() ?? 'User' : name,
+                    ),
+                    subtitle: Text(
+                      '${user['user_type']} · ${active ? 'Active' : 'Suspended'}',
+                    ),
+                    trailing: Switch(
+                      value: active,
+                      onChanged:
+                          user['id'] ==
+                              Supabase.instance.client.auth.currentUser?.id
+                          ? null
+                          : (value) => _toggle(user, value),
+                    ),
+                  ),
+                );
+              },
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
@@ -265,34 +377,77 @@ class AdminReportsPage extends StatelessWidget {
         foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.insert_chart, size: 80, color: Color(0xFF1A237E)),
-            const SizedBox(height: 16),
-            Text(
-              'Revenue: \$12,450',
-              style: GoogleFonts.poppins(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: Supabase.instance.client.from('profiles').select('user_type'),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting)
+            return const Center(child: CircularProgressIndicator());
+          if (snapshot.hasError)
+            return Center(
+              child: Text(
+                'Could not load report data. Apply supabase/schema.sql.\n${snapshot.error}',
+              ),
+            );
+          final users = snapshot.data ?? [];
+          final traders = users.where((u) => u['user_type'] == 'Trader').length;
+          final drivers = users.where((u) => u['user_type'] == 'Driver').length;
+          return Center(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.insert_chart,
+                    size: 80,
+                    color: Color(0xFF1A237E),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Registered users: ${users.length}',
+                    style: GoogleFonts.poppins(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Traders: $traders  ·  Drivers: $drivers',
+                    style: GoogleFonts.poppins(fontSize: 16),
+                  ),
+                  const SizedBox(height: 32),
+                  SizedBox(
+                    height: 220,
+                    width: 300,
+                    child: PieChart(
+                      PieChartData(
+                        sectionsSpace: 4,
+                        centerSpaceRadius: 40,
+                        sections: [
+                          PieChartSectionData(
+                            value: traders == 0 && drivers == 0
+                                ? 1
+                                : traders.toDouble(),
+                            title: 'Traders $traders',
+                            color: Colors.green,
+                            radius: 58,
+                          ),
+                          PieChartSectionData(
+                            value: traders == 0 && drivers == 0
+                                ? 1
+                                : drivers.toDouble(),
+                            title: 'Drivers $drivers',
+                            color: Colors.orange,
+                            radius: 58,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Total Transactions: 342',
-              style: GoogleFonts.poppins(fontSize: 16),
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1A237E),
-              ),
-              child: const Text('Download Report'),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
