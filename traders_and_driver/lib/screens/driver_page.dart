@@ -764,9 +764,9 @@ class DriverJobsPage extends StatelessWidget {
                 Chip(label: Text(load.status)),
               ]),
               const SizedBox(height: 8),
-              Text('Load #${load.id}  •  ${load.weight}'),
+              Text('Load #${load.id}  â€¢  ${load.weight}'),
               const SizedBox(height: 6),
-              Text('${load.from}  ?  ${load.to}'),
+              Text('${load.from}  â†’  ${load.to}'),
               const SizedBox(height: 14),
               SizedBox(width: double.infinity, child: FilledButton.icon(
                 onPressed: () => _confirmDelivered(context, store, load),
@@ -800,12 +800,12 @@ class DriverJobsPage extends StatelessWidget {
               Row(children: [
                 const Icon(Icons.receipt_long, color: Colors.green),
                 const SizedBox(width: 10),
-                Expanded(child: Text('Delivery receipt  •  #${load.id}', style: GoogleFonts.poppins(fontWeight: FontWeight.w600))),
+                Expanded(child: Text('Delivery receipt  â€¢  #${load.id}', style: GoogleFonts.poppins(fontWeight: FontWeight.w600))),
                 const Icon(Icons.verified, color: Colors.green),
               ]),
               const Divider(height: 24),
               _receiptRow('Item', load.product),
-              _receiptRow('Route', '${load.from} ? ${load.to}'),
+              _receiptRow('Route', '${load.from} â†’ ${load.to}'),
               _receiptRow('Weight', load.weight.isEmpty ? 'Not specified' : load.weight),
               _receiptRow('Status', 'Delivered'),
               _receiptRow('Completed', completed),
@@ -829,7 +829,7 @@ class DriverJobsPage extends StatelessWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Confirm delivery?'),
-        content: Text('Confirm that “${load.product}” (load #${load.id}) has reached ${load.to}.'),
+        content: Text('Confirm that "${load.product}" (load #${load.id}) has reached ${load.to}.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Not yet')),
           FilledButton.icon(
