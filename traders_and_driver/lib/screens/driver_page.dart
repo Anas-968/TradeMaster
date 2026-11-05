@@ -62,6 +62,8 @@ class DriverLoad {
     required this.from,
     required this.to,
     required this.weight,
+    required this.priceOmr,
+    required this.paymentMethod,
     required this.urgent,
     this.status = 'Available',
     this.driverId,
@@ -73,6 +75,8 @@ class DriverLoad {
   final String from;
   final String to;
   final String weight;
+  final String priceOmr;
+  final String paymentMethod;
   final bool urgent;
   String status;
   final String? driverId;
@@ -84,6 +88,8 @@ class DriverLoad {
     from: row['pickup_location']?.toString() ?? '',
     to: row['delivery_location']?.toString() ?? '',
     weight: row['weight']?.toString() ?? '',
+    priceOmr: row['price_omr']?.toString() ?? '0',
+    paymentMethod: row['payment_method']?.toString() ?? 'Cash on delivery',
     urgent: false,
     status: row['status']?.toString() ?? 'Available',
     driverId: row['driver_id']?.toString(),
@@ -156,6 +162,8 @@ class DriverLoadStore extends ChangeNotifier {
         from: load.from,
         to: load.to,
         weight: load.weight,
+        priceOmr: load.priceOmr,
+        paymentMethod: load.paymentMethod,
         urgent: load.urgent,
         status: 'Accepted',
         driverId: userId,
@@ -169,7 +177,8 @@ class DriverLoadStore extends ChangeNotifier {
     final i = loads.indexWhere((item) => item.id == load.id);
     if (i >= 0) {
       loads[i] = DriverLoad(id: load.id, product: load.product, from: load.from,
-        to: load.to, weight: load.weight, urgent: load.urgent,
+        to: load.to, weight: load.weight, priceOmr: load.priceOmr,
+        paymentMethod: load.paymentMethod, urgent: load.urgent,
         status: 'Delivered', driverId: load.driverId, deliveredAt: DateTime.now());
     }
     notifyListeners();
@@ -275,7 +284,7 @@ class DriverDashboard extends StatelessWidget {
                     crossAxisCount: 2,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
-                    childAspectRatio: 1.45,
+                    childAspectRatio: 1.15,
                     children: [
                       _buildStatCard(
                         Icons.account_balance_wallet,
@@ -495,12 +504,13 @@ class DriverDashboard extends StatelessWidget {
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(8),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 34, color: color),
-            const SizedBox(height: 8),
+            Icon(icon, size: 30, color: color),
+            const SizedBox(height: 4),
             Text(
               value,
               textAlign: TextAlign.center,
@@ -540,6 +550,9 @@ Future<void> showLoadDetails(BuildContext context, DriverLoad load) async {
                 _detailRow('Delivery location', load.to),
                 const SizedBox(height: 8),
                 _detailRow('Weight', load.weight),
+                _detailRow('Price', '${load.priceOmr} OMR'),
+                _detailRow('Payment method', load.paymentMethod),
+                const Text('Project demo only. No payment is processed.', style: TextStyle(color: Colors.black54, fontSize: 12)),
                 _detailRow('Priority', load.urgent ? 'Urgent' : 'Normal'),
                 _detailRow('Status', load.status),
                 const SizedBox(height: 8),
@@ -680,6 +693,8 @@ class AvailableLoadsPage extends StatelessWidget {
                       Text('From: ${load.from}  →  To: ${load.to}'),
                       const SizedBox(height: 8),
                       Text('Weight: ${load.weight}'),
+                      Text('Price: ${load.priceOmr} OMR'),
+                      Text('Payment method: ${load.paymentMethod} (demo only)'),
                       const SizedBox(height: 8),
                       const SizedBox(height: 12),
                       Row(
@@ -764,7 +779,8 @@ class DriverJobsPage extends StatelessWidget {
                 Chip(label: Text(load.status)),
               ]),
               const SizedBox(height: 8),
-              Text('Load #${load.id}  •  ${load.weight}'),
+              Text('Load #${load.id}  •  ${load.weight}  •  ${load.priceOmr} OMR'),
+              Text('Payment method: ${load.paymentMethod} (demo only)'),
               const SizedBox(height: 6),
               Text('${load.from}  →  ${load.to}'),
               const SizedBox(height: 14),
@@ -807,6 +823,8 @@ class DriverJobsPage extends StatelessWidget {
               _receiptRow('Item', load.product),
               _receiptRow('Route', '${load.from} → ${load.to}'),
               _receiptRow('Weight', load.weight.isEmpty ? 'Not specified' : load.weight),
+              _receiptRow('Price', '${load.priceOmr} OMR'),
+              _receiptRow('Payment method', '${load.paymentMethod} (demo only)'),
               _receiptRow('Status', 'Delivered'),
               _receiptRow('Completed', completed),
             ]),

@@ -4,6 +4,20 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme_controller.dart';
 import 'admin_page.dart';
 
+const List<String> omanLocations = [
+  'Muscat', 'Muttrah', 'Seeb', 'Bawshar', 'Al Amarat', 'Quriyat',
+  'Salalah', 'Sohar', 'Shinas', 'Liwa', 'Saham', 'Al Khaburah',
+  'Suwaiq', 'Barka', 'Rustaq', 'Nakhal', 'Nizwa', 'Bahla', 'Izki',
+  'Adam', 'Ibra', 'Sur', 'Bidiyah', 'Al Mudhaibi', 'Ibri', 'Yanqul',
+  'Buraimi', 'Khasab', 'Dibba', 'Haima', 'Duqm', 'Mahout',
+];
+const List<String> demoPaymentMethods = [
+  'Cash on delivery',
+  'Bank transfer',
+  'Card (demo)',
+  'Mobile wallet (demo)',
+];
+
 class TraderPage extends StatefulWidget {
   const TraderPage({super.key});
 
@@ -311,18 +325,19 @@ class _AddProductPageState extends State<AddProductPage> {
   final _formKey = GlobalKey<FormState>();
   final _product = TextEditingController();
   final _description = TextEditingController();
-  final _pickup = TextEditingController();
-  final _delivery = TextEditingController();
+  String? _pickup;
+  String? _delivery;
   final _weight = TextEditingController();
+  final _price = TextEditingController();
+  String _paymentMethod = demoPaymentMethods.first;
   bool _saving = false;
 
   @override
   void dispose() {
     _product.dispose();
     _description.dispose();
-    _pickup.dispose();
-    _delivery.dispose();
     _weight.dispose();
+    _price.dispose();
     super.dispose();
   }
 
@@ -336,16 +351,17 @@ class _AddProductPageState extends State<AddProductPage> {
         'trader_id': user.id,
         'product': _product.text.trim(),
         'description': _description.text.trim(),
-        'pickup_location': _pickup.text.trim(),
-        'delivery_location': _delivery.text.trim(),
+        'pickup_location': _pickup,
+        'delivery_location': _delivery,
         'weight': _weight.text.trim(),
+        'price_omr': double.parse(_price.text.trim()),
+        'payment_method': _paymentMethod,
       });
       for (final controller in [
         _product,
         _description,
-        _pickup,
-        _delivery,
         _weight,
+        _price,
       ]) {
         controller.clear();
       }
@@ -392,11 +408,40 @@ class _AddProductPageState extends State<AddProductPage> {
                   maxLines: 3,
                 ),
                 const SizedBox(height: 16),
-                _field(_pickup, 'Pickup location'),
+                _locationField('Pickup location', _pickup,
+                    (value) => setState(() => _pickup = value)),
                 const SizedBox(height: 16),
-                _field(_delivery, 'Delivery location'),
+                _locationField('Delivery location', _delivery,
+                    (value) => setState(() => _delivery = value)),
                 const SizedBox(height: 16),
-                _field(_weight, 'Load weight'),
+                _field(_weight, 'Load weight (kg or tons)'),
+                const SizedBox(height: 16),
+                _field(_price, 'Price (OMR)', number: true),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: _paymentMethod,
+                  decoration: const InputDecoration(
+                    labelText: 'Payment method',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: demoPaymentMethods
+                      .map((method) => DropdownMenuItem(
+                            value: method,
+                            child: Text(method),
+                          ))
+                      .toList(),
+                  onChanged: (method) {
+                    if (method != null) setState(() => _paymentMethod = method);
+                  },
+                ),
+                const SizedBox(height: 6),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Project demo only. No payment is processed.',
+                    style: TextStyle(color: Colors.black54, fontSize: 12),
+                  ),
+                ),
                 const SizedBox(height: 16),
                 const SizedBox(height: 24),
                 SizedBox(
@@ -452,6 +497,20 @@ class _AddProductPageState extends State<AddProductPage> {
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
     ),
   );
+
+  Widget _locationField(String label, String? value, ValueChanged<String?> onChanged) =>
+      DropdownButtonFormField<String>(
+        value: value,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+        items: omanLocations
+            .map((location) => DropdownMenuItem(value: location, child: Text(location)))
+            .toList(),
+        onChanged: onChanged,
+        validator: (value) => value == null ? 'Enter $label' : null,
+      );
 }
 
 class TraderProductsPage extends StatefulWidget {
@@ -473,29 +532,46 @@ class _TraderProductsPageState extends State<TraderProductsPage> {
     final fields = [
       TextEditingController(text: load['product']?.toString()),
       TextEditingController(text: load['description']?.toString()),
-      TextEditingController(text: load['pickup_location']?.toString()),
-      TextEditingController(text: load['delivery_location']?.toString()),
       TextEditingController(text: load['weight']?.toString()),
+      TextEditingController(text: load['price_omr']?.toString() ?? ''),
     ];
-    final labels = ['Product', 'Description', 'Pickup location', 'Delivery location', 'Weight'];
-    final confirmed = await showDialog<bool>(context: context, builder: (context) => AlertDialog(
+    String? pickup = omanLocations.contains(load['pickup_location']) ? load['pickup_location'] as String : null;
+    String? delivery = omanLocations.contains(load['delivery_location']) ? load['delivery_location'] as String : null;
+    String paymentMethod = demoPaymentMethods.contains(load['payment_method'])
+        ? load['payment_method'] as String
+        : demoPaymentMethods.first;
+    final confirmed = await showDialog<bool>(context: context, builder: (context) => StatefulBuilder(builder: (context, setDialogState) => AlertDialog(
       title: Text('Edit load #${load['id']}'),
       content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
-        for (var i = 0; i < fields.length; i++) Padding(
+        Padding(padding: const EdgeInsets.only(bottom: 10), child: TextField(controller: fields[0], decoration: const InputDecoration(labelText: 'Product', border: OutlineInputBorder()))),
+        Padding(padding: const EdgeInsets.only(bottom: 10), child: TextField(controller: fields[1], maxLines: 3, decoration: const InputDecoration(labelText: 'Description', border: OutlineInputBorder()))),
+        Padding(padding: const EdgeInsets.only(bottom: 10), child: DropdownButtonFormField<String>(value: pickup, decoration: const InputDecoration(labelText: 'Pickup location', border: OutlineInputBorder()), items: omanLocations.map((v) => DropdownMenuItem(value: v, child: Text(v))).toList(), onChanged: (v) => setDialogState(() => pickup = v))),
+        Padding(padding: const EdgeInsets.only(bottom: 10), child: DropdownButtonFormField<String>(value: delivery, decoration: const InputDecoration(labelText: 'Delivery location', border: OutlineInputBorder()), items: omanLocations.map((v) => DropdownMenuItem(value: v, child: Text(v))).toList(), onChanged: (v) => setDialogState(() => delivery = v))),
+        Padding(padding: const EdgeInsets.only(bottom: 10), child: TextField(controller: fields[2], decoration: const InputDecoration(labelText: 'Weight (kg or tons)', border: OutlineInputBorder()))),
+        Padding(
           padding: const EdgeInsets.only(bottom: 10),
-          child: TextField(controller: fields[i], maxLines: i == 1 ? 3 : 1,
-            decoration: InputDecoration(labelText: labels[i], border: const OutlineInputBorder())),
+          child: TextField(controller: fields[3], keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(labelText: 'Price (OMR)', border: OutlineInputBorder())),
         ),
+        Padding(padding: const EdgeInsets.only(bottom: 10), child: DropdownButtonFormField<String>(
+          value: paymentMethod,
+          decoration: const InputDecoration(labelText: 'Payment method', border: OutlineInputBorder()),
+          items: demoPaymentMethods.map((method) => DropdownMenuItem(value: method, child: Text(method))).toList(),
+          onChanged: (method) { if (method != null) setDialogState(() => paymentMethod = method); },
+        )),
+        const Text('Project demo only. No payment is processed.', style: TextStyle(color: Colors.black54, fontSize: 12)),
       ])),
       actions: [TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-        FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Save'))],
-    ));
+        FilledButton(onPressed: pickup == null || delivery == null || double.tryParse(fields[3].text.trim()) == null || double.parse(fields[3].text.trim()) < 0 ? null : () => Navigator.pop(context, true), child: const Text('Save'))],
+    )));
     if (confirmed == true) {
       try {
         await Supabase.instance.client.rpc('update_available_load', params: {
           'p_load_id': load['id'], 'p_product': fields[0].text.trim(),
-          'p_description': fields[1].text.trim(), 'p_pickup_location': fields[2].text.trim(),
-          'p_delivery_location': fields[3].text.trim(), 'p_weight': fields[4].text.trim(),
+          'p_description': fields[1].text.trim(), 'p_pickup_location': pickup!,
+          'p_delivery_location': delivery!, 'p_weight': fields[2].text.trim(),
+          'p_price_omr': double.parse(fields[3].text.trim()),
+          'p_payment_method': paymentMethod,
         });
         setState(() => _rows = _loadRows());
       } catch (e) { _message('Could not update load: $e'); }
