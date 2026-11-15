@@ -99,7 +99,7 @@ class AdminDashboard extends StatelessWidget {
                   crossAxisCount: 2,
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
-                  childAspectRatio: 1.3,
+                  childAspectRatio: 1.1,
                   children: [
                     _buildAdminCard(
                       Icons.person,
@@ -230,15 +230,16 @@ class AdminDashboard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         onTap: onTap,
         child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(10),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 40, color: color),
-            const SizedBox(height: 8),
+            Icon(icon, size: 32, color: color),
+            const SizedBox(height: 5),
             Text(
               value,
               style: GoogleFonts.poppins(
-                fontSize: 22,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -320,7 +321,12 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
           .from('profiles')
           .update({'is_active': active})
           .eq('id', user['id']);
-      if (mounted) setState(() => _users = _loadUsers());
+      final usersFuture = _loadUsers();
+      if (mounted) {
+        setState(() {
+          _users = usersFuture;
+        });
+      }
     } catch (error) {
       if (mounted)
         ScaffoldMessenger.of(context).showSnackBar(
@@ -375,8 +381,11 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
             ])),
             Expanded(child: users.isEmpty ? const Center(child: Text('No matching users.')) : RefreshIndicator(
             onRefresh: () async {
-              setState(() => _users = _loadUsers());
-              await _users;
+              final usersFuture = _loadUsers();
+              setState(() {
+                _users = usersFuture;
+              });
+              await usersFuture;
             },
             child: ListView.builder(
               itemCount: users.length,
@@ -414,7 +423,12 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
 
   Future<void> _showUserDetails(Map<String, dynamic> user) async {
     await showDialog<void>(context: context, builder: (_) => _AdminUserDialog(user: user));
-    if (mounted) setState(() => _users = _loadUsers());
+    if (mounted) {
+      final usersFuture = _loadUsers();
+      setState(() {
+        _users = usersFuture;
+      });
+    }
   }
 }
 
@@ -481,13 +495,54 @@ Future<List<Map<String, dynamic>>> _loadUserOrders(String id) async {
   return List<Map<String, dynamic>>.from(result);
 }
 
+Future<List<Map<String, dynamic>>> _loadOrdersWithProfiles() async {
+  final response = await Supabase.instance.client
+      .from('loads')
+      .select()
+      .order('created_at', ascending: false);
+  final orders = List<Map<String, dynamic>>.from(response);
+  final profileIds = <String>{};
+  for (final order in orders) {
+    profileIds.add('${order['trader_id']}');
+    final driverId = order['driver_id'];
+    if (driverId != null) profileIds.add('$driverId');
+  }
+  if (profileIds.isEmpty) return orders;
+
+  final profileRows = await Supabase.instance.client
+      .from('profiles')
+      .select('id, full_name, phone')
+      .inFilter('id', profileIds.toList());
+  final profiles = {
+    for (final profile in profileRows) '${profile['id']}': profile,
+  };
+  for (final order in orders) {
+    order['trader_profile'] = profiles['${order['trader_id']}'];
+    final driverId = order['driver_id'];
+    order['driver_profile'] = driverId == null ? null : profiles['$driverId'];
+  }
+  return orders;
+}
+
+String _contactName(dynamic profile) {
+  if (profile is! Map) return 'Unknown';
+  final name = profile['full_name']?.toString().trim() ?? '';
+  return name.isEmpty ? 'Unnamed user' : name;
+}
+
+String _contactPhone(dynamic profile) {
+  if (profile is! Map) return 'No phone number';
+  final phone = profile['phone']?.toString().trim() ?? '';
+  return phone.isEmpty ? 'No phone number' : phone;
+}
+
 class AdminOrdersPage extends StatelessWidget {
   const AdminOrdersPage({super.key});
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('Marketplace orders'), backgroundColor: const Color(0xFF1A237E), foregroundColor: Colors.white),
     body: FutureBuilder<List<Map<String, dynamic>>>(
-      future: Supabase.instance.client.from('loads').select().order('created_at', ascending: false),
+      future: _loadOrdersWithProfiles(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
         if (snapshot.hasError) return Center(child: Text('Could not load orders: ${snapshot.error}'));
@@ -500,8 +555,16 @@ class AdminOrdersPage extends StatelessWidget {
             return Card(margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5), child: ListTile(
               leading: const CircleAvatar(child: Icon(Icons.local_shipping)),
               title: Text('#${order['id']} | ${order['product']}'),
-              subtitle: Text('${order['status']} | ${order['pickup_location']} to ${order['delivery_location']}\nTrader ${order['trader_id']} | Driver ${order['driver_id'] ?? 'Unassigned'}'),
-              isThreeLine: true,
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('${order['status']} | ${order['pickup_location']} to ${order['delivery_location']}'),
+                  Text('Trader: ${_contactName(order['trader_profile'])} | Phone: ${_contactPhone(order['trader_profile'])}'),
+                  Text(order['driver_id'] == null
+                      ? 'Accepted driver: Not assigned'
+                      : 'Accepted driver: ${_contactName(order['driver_profile'])} | Phone: ${_contactPhone(order['driver_profile'])}'),
+                ],
+              ),
               trailing: Text('${_formatOmr(order['price_omr'])} OMR'),
             ));
           })),
