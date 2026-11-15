@@ -68,7 +68,7 @@ create index if not exists loads_driver_idx on public.loads(driver_id, created_a
 
 alter table public.profiles enable row level security;
 alter table public.loads enable row level security;
-grant select, update (is_active) on public.profiles to authenticated;
+grant select, update (full_name, phone, user_type, is_active) on public.profiles to authenticated;
 grant select, insert on public.loads to authenticated;
 
 -- Remove any older/custom policies first. Policies that query profiles from a
