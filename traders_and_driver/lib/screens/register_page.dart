@@ -79,6 +79,12 @@ class _RegisterPageState extends State<RegisterPage> {
         return _RegistrationErrorType.rateLimited;
       }
 
+      if (message.contains('already registered') ||
+          message.contains('already exists') ||
+          message.contains('user already')) {
+        return _RegistrationErrorType.unknown;
+      }
+
       if (isOtpVerification &&
           (message.contains('token') ||
               message.contains('otp') ||
@@ -104,6 +110,12 @@ class _RegisterPageState extends State<RegisterPage> {
       case _RegistrationErrorType.network:
         return 'Connection problem. Please check your internet and try again.';
       case _RegistrationErrorType.unknown:
+        if (error is AuthException &&
+            (error.message.toLowerCase().contains('already registered') ||
+                error.message.toLowerCase().contains('already exists') ||
+                error.message.toLowerCase().contains('user already'))) {
+          return 'This phone number is already registered. Please log in.';
+        }
         return isOtpVerification
             ? 'We could not complete your registration. Please try again.'
             : 'We could not send a verification code. Please try again.';
@@ -164,14 +176,21 @@ class _RegisterPageState extends State<RegisterPage> {
       final formattedPhone = _formatPhoneNumber(phone);
       _currentPhoneNumber = formattedPhone;
 
-      // Send OTP via Supabase Phone Auth
-      await Supabase.instance.client.auth.signInWithOtp(
+      // Use signUp so an existing phone cannot authenticate and overwrite its
+      // password through the registration flow.
+      final response = await Supabase.instance.client.auth.signUp(
         phone: formattedPhone,
+        password: _passwordController.text,
         data: {
           'full_name': _fullNameController.text.trim(),
           'user_type': _selectedUserType,
         },
       );
+      if (response.user == null) {
+        throw const AuthException(
+          'This phone number may already be registered. Please log in.',
+        );
+      }
 
       setState(() {
         _otpSent = true;
@@ -210,7 +229,7 @@ class _RegisterPageState extends State<RegisterPage> {
     setState(() => _isLoading = true);
 
     try {
-      // Verify OTP with Supabase - this creates/authenticates the user
+      // Verify the OTP for the account created by signUp.
       final response = await Supabase.instance.client.auth.verifyOTP(
         phone: _currentPhoneNumber!,
         token: otp,
@@ -218,24 +237,7 @@ class _RegisterPageState extends State<RegisterPage> {
       );
 
       if (response.user != null) {
-        // User is now authenticated via phone
-        // Now we need to set their password and update metadata
-        // Note: Supabase phone auth users don't have passwords by default
-        // We need to update the user with password and metadata
-
-        // Update user metadata and set password
-        await Supabase.instance.client.auth.updateUser(
-          UserAttributes(
-            password: _passwordController.text,
-            data: {
-              'full_name': _fullNameController.text.trim(),
-              'user_type': _selectedUserType,
-              'phone_verified': true,
-            },
-          ),
-        );
-
-        // Sign out after registration so user can login with phone+password
+        // signUp already stored the password and metadata.
         await Supabase.instance.client.auth.signOut();
 
         if (mounted) {

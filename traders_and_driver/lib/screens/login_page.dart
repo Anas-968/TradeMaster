@@ -73,6 +73,9 @@ class _LoginPageState extends State<LoginPage> {
       final user = response.user;
       if (user == null) return;
 
+      // Record this without granting clients permission to edit profile fields.
+      await Supabase.instance.client.rpc('record_profile_login');
+
       Map<String, dynamic>? profile;
       Object? profileError;
       try {
