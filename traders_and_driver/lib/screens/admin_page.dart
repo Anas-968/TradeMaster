@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 import '../theme_controller.dart';
 
 class AdminPage extends StatefulWidget {
@@ -45,8 +47,15 @@ class _AdminPageState extends State<AdminPage> {
   }
 }
 
-class AdminDashboard extends StatelessWidget {
+class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
+
+  @override
+  State<AdminDashboard> createState() => _AdminDashboardState();
+}
+
+class _AdminDashboardState extends State<AdminDashboard> {
+  late Future<Map<String, dynamic>> _metrics = _loadAdminMetrics();
 
   @override
   Widget build(BuildContext context) {
@@ -62,10 +71,23 @@ class AdminDashboard extends StatelessWidget {
         backgroundColor: const Color(0xFF1A237E),
         foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
-        actions: [const ThemeToggleButton(), _resetPasswordButton(context), _logoutButton(context)],
+        actions: [
+          const ThemeToggleButton(),
+          IconButton(
+            tooltip: 'Refresh',
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              setState(() {
+                _metrics = _loadAdminMetrics();
+              });
+            },
+          ),
+          _resetPasswordButton(context),
+          _logoutButton(context),
+        ],
       ),
       body: FutureBuilder<Map<String, dynamic>>(
-        future: _loadAdminMetrics(),
+        future: _metrics,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting)
             return const Center(child: CircularProgressIndicator());
@@ -131,14 +153,6 @@ class AdminDashboard extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                Card(child: ListTile(
-                  leading: const CircleAvatar(child: Icon(Icons.payments_outlined)),
-                  title: const Text('Marketplace order value'),
-                  subtitle: Text('${metrics['orders']} total orders'),
-                  trailing: Text('${_formatOmr(metrics['orderTotal'])} OMR', style: const TextStyle(fontWeight: FontWeight.bold)),
-                  onTap: () => _openOrders(context),
-                )),
                 const SizedBox(height: 24),
                 Text(
                   'Marketplace activity',
@@ -148,27 +162,50 @@ class AdminDashboard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                SizedBox(
-                  height: 220,
-                  child: PieChart(
-                    PieChartData(
-                      sectionsSpace: 4,
-                      centerSpaceRadius: 40,
-                      sections: [
-                        PieChartSectionData(
-                          value: metrics['traders']!.toDouble(),
-                          title: 'Traders',
-                          color: Colors.green,
-                          radius: 58,
+                Card(
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: const CircleAvatar(
+                          child: Icon(Icons.payments_outlined),
                         ),
-                        PieChartSectionData(
-                          value: metrics['drivers']!.toDouble(),
-                          title: 'Drivers',
-                          color: Colors.orange,
-                          radius: 58,
+                        title: const Text('Marketplace order value'),
+                        subtitle: Text('${metrics['orders']} total loads'),
+                        trailing: Text(
+                          '${_formatOmr(metrics['orderTotal'])} OMR',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
-                      ],
-                    ),
+                        onTap: () => _openOrders(context),
+                      ),
+                      const Divider(height: 1),
+                      ListTile(
+                        leading: const Icon(Icons.local_shipping_outlined),
+                        title: const Text('Active loads'),
+                        trailing: Text(
+                          '${metrics['activeLoads']}',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        onTap: () => _openOrders(context),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.check_circle_outline),
+                        title: const Text('Delivered loads'),
+                        trailing: Text(
+                          '${metrics['deliveredLoads']}',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        onTap: () => _openOrders(context),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.pending_actions),
+                        title: const Text('Unassigned loads'),
+                        trailing: Text(
+                          '${metrics['unassignedLoads']}',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        onTap: () => _openOrders(context),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -230,45 +267,51 @@ class AdminDashboard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         onTap: onTap,
         child: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 32, color: color),
-            const SizedBox(height: 5),
-            Text(
-              value,
-              style: GoogleFonts.poppins(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 32, color: color),
+              const SizedBox(height: 5),
+              Text(
+                value,
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            Text(
-              title,
-              style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600]),
-            ),
-          ],
+              Text(
+                title,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
         ),
-      )),
+      ),
     );
   }
 
-  void _openUsers(BuildContext context, {String? type}) => Navigator.of(context).push(
-    MaterialPageRoute(builder: (_) => AdminUsersPage(initialType: type)),
-  );
+  void _openUsers(BuildContext context, {String? type}) => Navigator.of(
+    context,
+  ).push(MaterialPageRoute(builder: (_) => AdminUsersPage(initialType: type)));
 
-  void _openOrders(BuildContext context) => Navigator.of(context).push(
-    MaterialPageRoute(builder: (_) => const AdminOrdersPage()),
-  );
+  void _openOrders(BuildContext context) => Navigator.of(
+    context,
+  ).push(MaterialPageRoute(builder: (_) => const AdminOrdersPage()));
 }
 
 String _formatOmr(dynamic amount) =>
-    ((amount is num ? amount : num.tryParse('$amount')) ?? 0).toStringAsFixed(3);
+    ((amount is num ? amount : num.tryParse('$amount')) ?? 0).toStringAsFixed(
+      3,
+    );
 
 Future<Map<String, dynamic>> _loadAdminMetrics() async {
   final db = Supabase.instance.client;
   final profiles = await db.from('profiles').select('user_type');
-  final loads = await db.from('loads').select('status, price_omr');
+  final loads = await db.from('loads').select('status, price_omr, driver_id');
   final users = List<Map<String, dynamic>>.from(profiles);
   final jobs = List<Map<String, dynamic>>.from(loads);
   return {
@@ -276,13 +319,22 @@ Future<Map<String, dynamic>> _loadAdminMetrics() async {
     'traders': users.where((u) => u['user_type'] == 'Trader').length,
     'drivers': users.where((u) => u['user_type'] == 'Driver').length,
     'orders': jobs.length,
-    'orderTotal': jobs.fold<num>(0, (sum, job) => sum + ((job['price_omr'] as num?) ?? 0)),
+    'orderTotal': jobs.fold<num>(
+      0,
+      (sum, job) => sum + ((job['price_omr'] as num?) ?? 0),
+    ),
     'activeLoads': jobs
         .where(
           (job) =>
               job['status'] == 'Available' ||
               job['status'] == 'Accepted' ||
               job['status'] == 'In transit',
+        )
+        .length,
+    'deliveredLoads': jobs.where((job) => job['status'] == 'Delivered').length,
+    'unassignedLoads': jobs
+        .where(
+          (job) => job['driver_id'] == null && job['status'] == 'Available',
         )
         .length,
   };
@@ -303,9 +355,16 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
   late Future<List<Map<String, dynamic>>> _users = _loadUsers();
 
   @override
-  void initState() { super.initState(); _filter = widget.initialType ?? 'All'; }
+  void initState() {
+    super.initState();
+    _filter = widget.initialType ?? 'All';
+  }
+
   @override
-  void dispose() { _searchController.dispose(); super.dispose(); }
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   Future<List<Map<String, dynamic>>> _loadUsers() async {
     final data = await Supabase.instance.client
@@ -362,67 +421,115 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
             );
           final allUsers = snapshot.data ?? [];
           final users = allUsers.where((user) {
-            final typeMatches = _filter == 'All' || user['user_type'] == _filter;
-            final haystack = '${user['full_name'] ?? ''} ${user['phone'] ?? ''}'.toLowerCase();
+            final typeMatches =
+                _filter == 'All' || user['user_type'] == _filter;
+            final haystack = '${user['full_name'] ?? ''} ${user['phone'] ?? ''}'
+                .toLowerCase();
             return typeMatches && haystack.contains(_query.toLowerCase());
           }).toList();
-          return Column(children: [
-            Padding(padding: const EdgeInsets.fromLTRB(16, 12, 16, 4), child: TextField(
-              controller: _searchController,
-              onChanged: (value) => setState(() => _query = value),
-              decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Search by name or phone', border: OutlineInputBorder()),
-            )),
-            SingleChildScrollView(scrollDirection: Axis.horizontal, child: Row(children: [
-              for (final type in ['All', 'Trader', 'Driver', 'Admin'])
-                Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: ChoiceChip(
-                  label: Text('$type (${type == 'All' ? allUsers.length : allUsers.where((u) => u['user_type'] == type).length})'),
-                  selected: _filter == type, onSelected: (_) => setState(() => _filter = type),
-                )),
-            ])),
-            Expanded(child: users.isEmpty ? const Center(child: Text('No matching users.')) : RefreshIndicator(
-            onRefresh: () async {
-              final usersFuture = _loadUsers();
-              setState(() {
-                _users = usersFuture;
-              });
-              await usersFuture;
-            },
-            child: ListView.builder(
-              itemCount: users.length,
-              itemBuilder: (context, index) {
-                final user = users[index];
-                final name = user['full_name']?.toString() ?? '';
-                final active = user['is_active'] as bool? ?? true;
-                return Card(
-                  margin: const EdgeInsets.all(8),
-                  child: ListTile(
-                    onTap: () => _showUserDetails(user),
-                    leading: CircleAvatar(
-                      child: Text(name.isEmpty ? '?' : name[0].toUpperCase()),
-                    ),
-                    title: Text(
-                      name.isEmpty ? user['phone']?.toString() ?? 'User' : name,
-                    ),
-                    subtitle: Text(
-                      '${user['user_type']} · ${active ? 'Active' : 'Suspended'}',
-                    ),
-                    trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-                      Switch(value: active, onChanged: user['id'] == Supabase.instance.client.auth.currentUser?.id ? null : (value) => _toggle(user, value)),
-                      const Icon(Icons.chevron_right),
-                    ]),
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (value) => setState(() => _query = value),
+                  decoration: const InputDecoration(
+                    prefixIcon: Icon(Icons.search),
+                    hintText: 'Search by name or phone',
+                    border: OutlineInputBorder(),
                   ),
-                );
-              },
-            ),
-          )),
-          ]);
+                ),
+              ),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    for (final type in ['All', 'Trader', 'Driver', 'Admin'])
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: ChoiceChip(
+                          label: Text(
+                            '$type (${type == 'All' ? allUsers.length : allUsers.where((u) => u['user_type'] == type).length})',
+                          ),
+                          selected: _filter == type,
+                          onSelected: (_) => setState(() => _filter = type),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: users.isEmpty
+                    ? const Center(child: Text('No matching users.'))
+                    : RefreshIndicator(
+                        onRefresh: () async {
+                          final usersFuture = _loadUsers();
+                          setState(() {
+                            _users = usersFuture;
+                          });
+                          await usersFuture;
+                        },
+                        child: ListView.builder(
+                          itemCount: users.length,
+                          itemBuilder: (context, index) {
+                            final user = users[index];
+                            final name = user['full_name']?.toString() ?? '';
+                            final active = user['is_active'] as bool? ?? true;
+                            return Card(
+                              margin: const EdgeInsets.all(8),
+                              child: ListTile(
+                                onTap: () => _showUserDetails(user),
+                                leading: CircleAvatar(
+                                  child: Text(
+                                    name.isEmpty ? '?' : name[0].toUpperCase(),
+                                  ),
+                                ),
+                                title: Text(
+                                  name.isEmpty
+                                      ? user['phone']?.toString() ?? 'User'
+                                      : name,
+                                ),
+                                subtitle: Text(
+                                  '${user['user_type']} · ${active ? 'Active' : 'Suspended'}',
+                                ),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Switch(
+                                      value: active,
+                                      onChanged:
+                                          user['id'] ==
+                                              Supabase
+                                                  .instance
+                                                  .client
+                                                  .auth
+                                                  .currentUser
+                                                  ?.id
+                                          ? null
+                                          : (value) => _toggle(user, value),
+                                    ),
+                                    const Icon(Icons.chevron_right),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+              ),
+            ],
+          );
         },
       ),
     );
   }
 
   Future<void> _showUserDetails(Map<String, dynamic> user) async {
-    await showDialog<void>(context: context, builder: (_) => _AdminUserDialog(user: user));
+    await showDialog<void>(
+      context: context,
+      builder: (_) => _AdminUserDialog(user: user),
+    );
     if (mounted) {
       final usersFuture = _loadUsers();
       setState(() {
@@ -440,58 +547,135 @@ class _AdminUserDialog extends StatefulWidget {
 }
 
 class _AdminUserDialogState extends State<_AdminUserDialog> {
-  late final _name = TextEditingController(text: widget.user['full_name']?.toString() ?? '');
-  late final _phone = TextEditingController(text: widget.user['phone']?.toString() ?? '');
+  late final _name = TextEditingController(
+    text: widget.user['full_name']?.toString() ?? '',
+  );
+  late final _phone = TextEditingController(
+    text: widget.user['phone']?.toString() ?? '',
+  );
   late String _type = widget.user['user_type']?.toString() ?? 'Trader';
   bool _saving = false;
 
   @override
-  void dispose() { _name.dispose(); _phone.dispose(); super.dispose(); }
+  void dispose() {
+    _name.dispose();
+    _phone.dispose();
+    super.dispose();
+  }
 
   Future<void> _save() async {
     setState(() => _saving = true);
     try {
-      await Supabase.instance.client.from('profiles').update({
-        'full_name': _name.text.trim(),
-        'phone': _phone.text.trim().isEmpty ? null : _phone.text.trim(),
-        'user_type': _type,
-      }).eq('id', widget.user['id']);
+      await Supabase.instance.client
+          .from('profiles')
+          .update({
+            'full_name': _name.text.trim(),
+            'phone': _phone.text.trim().isEmpty ? null : _phone.text.trim(),
+            'user_type': _type,
+          })
+          .eq('id', widget.user['id']);
       if (mounted) Navigator.pop(context);
     } catch (error) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not save user: $error')));
-    } finally { if (mounted) setState(() => _saving = false); }
+      if (mounted)
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Could not save user: $error')));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) => AlertDialog(
     title: const Text('User details'),
-    content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-      _detailLine('Account ID', '${widget.user['id']}'),
-      _detailLine('Joined', '${widget.user['created_at'] ?? 'Unknown'}'),
-      _detailLine('Last updated', '${widget.user['updated_at'] ?? 'Unknown'}'),
-      const SizedBox(height: 12),
-      TextField(controller: _name, decoration: const InputDecoration(labelText: 'Full name')),
-      TextField(controller: _phone, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Phone')),
-      DropdownButtonFormField<String>(value: _type, decoration: const InputDecoration(labelText: 'Account section'), items: const [DropdownMenuItem(value: 'Trader', child: Text('Trader')), DropdownMenuItem(value: 'Driver', child: Text('Driver')), DropdownMenuItem(value: 'Admin', child: Text('Admin'))], onChanged: widget.user['id'] == Supabase.instance.client.auth.currentUser?.id ? null : (value) { if (value != null) setState(() => _type = value); }),
-      const SizedBox(height: 12),
-      FutureBuilder<List<Map<String, dynamic>>>(future: _loadUserOrders('${widget.user['id']}'), builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) return const LinearProgressIndicator();
-        if (snapshot.hasError) return Text('Order history unavailable: ${snapshot.error}');
-        final orders = snapshot.data ?? [];
-        return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Order history (${orders.length})', style: const TextStyle(fontWeight: FontWeight.bold)),
-          for (final order in orders.take(5)) Text('#${order['id']} | ${order['product']} | ${order['status']} | ${_formatOmr(order['price_omr'])} OMR'),
-        ]);
-      }),
-    ])),
-    actions: [TextButton(onPressed: _saving ? null : () => Navigator.pop(context), child: const Text('Close')), FilledButton(onPressed: _saving ? null : _save, child: Text(_saving ? 'Saving...' : 'Save changes'))],
+    content: SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _detailLine('Account ID', '${widget.user['id']}'),
+          _detailLine('Joined', '${widget.user['created_at'] ?? 'Unknown'}'),
+          _detailLine(
+            'Last updated',
+            '${widget.user['updated_at'] ?? 'Unknown'}',
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _name,
+            decoration: const InputDecoration(labelText: 'Full name'),
+          ),
+          TextField(
+            controller: _phone,
+            keyboardType: TextInputType.phone,
+            decoration: const InputDecoration(labelText: 'Phone'),
+          ),
+          DropdownButtonFormField<String>(
+            value: _type,
+            decoration: const InputDecoration(labelText: 'Account section'),
+            items: const [
+              DropdownMenuItem(value: 'Trader', child: Text('Trader')),
+              DropdownMenuItem(value: 'Driver', child: Text('Driver')),
+              DropdownMenuItem(value: 'Admin', child: Text('Admin')),
+            ],
+            onChanged:
+                widget.user['id'] ==
+                    Supabase.instance.client.auth.currentUser?.id
+                ? null
+                : (value) {
+                    if (value != null) setState(() => _type = value);
+                  },
+          ),
+          const SizedBox(height: 12),
+          FutureBuilder<List<Map<String, dynamic>>>(
+            future: _loadUserOrders('${widget.user['id']}'),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting)
+                return const LinearProgressIndicator();
+              if (snapshot.hasError)
+                return Text('Order history unavailable: ${snapshot.error}');
+              final orders = snapshot.data ?? [];
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Order history (${orders.length})',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  for (final order in orders.take(5))
+                    Text(
+                      '#${order['id']} | ${order['product']} | ${order['status']} | ${_formatOmr(order['price_omr'])} OMR',
+                    ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: _saving ? null : () => Navigator.pop(context),
+        child: const Text('Close'),
+      ),
+      FilledButton(
+        onPressed: _saving ? null : _save,
+        child: Text(_saving ? 'Saving...' : 'Save changes'),
+      ),
+    ],
   );
 }
 
-Widget _detailLine(String label, String value) => Padding(padding: const EdgeInsets.only(bottom: 4), child: Text('$label: $value', style: const TextStyle(fontSize: 12)));
+Widget _detailLine(String label, String value) => Padding(
+  padding: const EdgeInsets.only(bottom: 4),
+  child: Text('$label: $value', style: const TextStyle(fontSize: 12)),
+);
 
 Future<List<Map<String, dynamic>>> _loadUserOrders(String id) async {
-  final result = await Supabase.instance.client.from('loads').select().or('trader_id.eq.$id,driver_id.eq.$id').order('created_at', ascending: false);
+  final result = await Supabase.instance.client
+      .from('loads')
+      .select()
+      .or('trader_id.eq.$id,driver_id.eq.$id')
+      .order('created_at', ascending: false);
   return List<Map<String, dynamic>>.from(result);
 }
 
@@ -540,127 +724,465 @@ class AdminOrdersPage extends StatelessWidget {
   const AdminOrdersPage({super.key});
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Marketplace orders'), backgroundColor: const Color(0xFF1A237E), foregroundColor: Colors.white),
+    appBar: AppBar(
+      title: const Text('Marketplace orders'),
+      backgroundColor: const Color(0xFF1A237E),
+      foregroundColor: Colors.white,
+    ),
     body: FutureBuilder<List<Map<String, dynamic>>>(
       future: _loadOrdersWithProfiles(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
-        if (snapshot.hasError) return Center(child: Text('Could not load orders: ${snapshot.error}'));
+        if (snapshot.connectionState == ConnectionState.waiting)
+          return const Center(child: CircularProgressIndicator());
+        if (snapshot.hasError)
+          return Center(
+            child: Text('Could not load orders: ${snapshot.error}'),
+          );
         final orders = snapshot.data ?? [];
-        final total = orders.fold<num>(0, (sum, order) => sum + ((order['price_omr'] as num?) ?? 0));
-        return Column(children: [
-          Card(margin: const EdgeInsets.all(12), child: ListTile(title: Text('${orders.length} total orders'), subtitle: const Text('Combined order value'), trailing: Text('${_formatOmr(total)} OMR', style: const TextStyle(fontWeight: FontWeight.bold)))),
-          Expanded(child: ListView.builder(itemCount: orders.length, itemBuilder: (context, index) {
-            final order = orders[index];
-            return Card(margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5), child: ListTile(
-              leading: const CircleAvatar(child: Icon(Icons.local_shipping)),
-              title: Text('#${order['id']} | ${order['product']}'),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('${order['status']} | ${order['pickup_location']} to ${order['delivery_location']}'),
-                  Text('Trader: ${_contactName(order['trader_profile'])} | Phone: ${_contactPhone(order['trader_profile'])}'),
-                  Text(order['driver_id'] == null
-                      ? 'Accepted driver: Not assigned'
-                      : 'Accepted driver: ${_contactName(order['driver_profile'])} | Phone: ${_contactPhone(order['driver_profile'])}'),
-                ],
+        final total = orders.fold<num>(
+          0,
+          (sum, order) => sum + ((order['price_omr'] as num?) ?? 0),
+        );
+        return Column(
+          children: [
+            Card(
+              margin: const EdgeInsets.all(12),
+              child: ListTile(
+                title: Text('${orders.length} total orders'),
+                subtitle: const Text('Combined order value'),
+                trailing: Text(
+                  '${_formatOmr(total)} OMR',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
-              trailing: Text('${_formatOmr(order['price_omr'])} OMR'),
-            ));
-          })),
-        ]);
+            ),
+            Expanded(
+              child: ListView.builder(
+                itemCount: orders.length,
+                itemBuilder: (context, index) {
+                  final order = orders[index];
+                  return Card(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 5,
+                    ),
+                    child: ListTile(
+                      leading: const CircleAvatar(
+                        child: Icon(Icons.local_shipping),
+                      ),
+                      title: Text('#${order['id']} | ${order['product']}'),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${order['status']} | ${order['pickup_location']} to ${order['delivery_location']}',
+                          ),
+                          Text(
+                            'Trader: ${_contactName(order['trader_profile'])} | Phone: ${_contactPhone(order['trader_profile'])}',
+                          ),
+                          Text(
+                            order['driver_id'] == null
+                                ? 'Accepted driver: Not assigned'
+                                : 'Accepted driver: ${_contactName(order['driver_profile'])} | Phone: ${_contactPhone(order['driver_profile'])}',
+                          ),
+                        ],
+                      ),
+                      trailing: Text('${_formatOmr(order['price_omr'])} OMR'),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
       },
     ),
   );
 }
 
-class AdminReportsPage extends StatelessWidget {
+class AdminReportsPage extends StatefulWidget {
   const AdminReportsPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Reports',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: const Color(0xFF1A237E),
-        foregroundColor: Colors.white,
-        automaticallyImplyLeading: false,
+  State<AdminReportsPage> createState() => _AdminReportsPageState();
+}
+
+class _AdminReportsPageState extends State<AdminReportsPage> {
+  late Future<_ReportData> _report = _loadDriverReports();
+
+  Future<void> _refresh() async {
+    final next = _loadDriverReports();
+    setState(() {
+      _report = next;
+    });
+    try {
+      await next;
+    } catch (_) {
+      // The FutureBuilder shows the error.
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(
+      title: Text(
+        'Reports',
+        style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
       ),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: Supabase.instance.client.from('profiles').select('user_type'),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting)
-            return const Center(child: CircularProgressIndicator());
-          if (snapshot.hasError)
-            return Center(
-              child: Text(
-                'Could not load report data. Apply supabase/schema.sql.\n${snapshot.error}',
-              ),
-            );
-          final users = snapshot.data ?? [];
-          final traders = users.where((u) => u['user_type'] == 'Trader').length;
-          final drivers = users.where((u) => u['user_type'] == 'Driver').length;
+      backgroundColor: const Color(0xFF1A237E),
+      foregroundColor: Colors.white,
+      automaticallyImplyLeading: false,
+      actions: [
+        IconButton(
+          tooltip: 'Refresh',
+          icon: const Icon(Icons.refresh),
+          onPressed: _refresh,
+        ),
+      ],
+    ),
+    body: FutureBuilder<_ReportData>(
+      future: _report,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError || snapshot.data == null) {
           return Center(
-            child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
-                    Icons.insert_chart,
-                    size: 80,
-                    color: Color(0xFF1A237E),
-                  ),
-                  const SizedBox(height: 16),
                   Text(
-                    'Registered users: ${users.length}',
-                    style: GoogleFonts.poppins(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    'Could not load driver reports. Apply supabase/schema.sql and confirm administrator access.\n\n${snapshot.error}',
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Traders: $traders  ·  Drivers: $drivers',
-                    style: GoogleFonts.poppins(fontSize: 16),
-                  ),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    height: 220,
-                    width: 300,
-                    child: PieChart(
-                      PieChartData(
-                        sectionsSpace: 4,
-                        centerSpaceRadius: 40,
-                        sections: [
-                          PieChartSectionData(
-                            value: traders == 0 && drivers == 0
-                                ? 1
-                                : traders.toDouble(),
-                            title: 'Traders $traders',
-                            color: Colors.green,
-                            radius: 58,
-                          ),
-                          PieChartSectionData(
-                            value: traders == 0 && drivers == 0
-                                ? 1
-                                : drivers.toDouble(),
-                            title: 'Drivers $drivers',
-                            color: Colors.orange,
-                            radius: 58,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  const SizedBox(height: 12),
+                  FilledButton(onPressed: _refresh, child: const Text('Retry')),
                 ],
               ),
             ),
           );
-        },
+        }
+        final data = snapshot.data!;
+        final drivers = data.drivers;
+        final allLoads = drivers.expand(_loadsOf).toList();
+        final delivered = allLoads
+            .where((load) => load['status'] == 'Delivered')
+            .length;
+        final totalValue = allLoads.fold<num>(
+          0,
+          (sum, load) => sum + ((load['price_omr'] as num?) ?? 0),
+        );
+        final hasAccounts = data.traderCount + drivers.length > 0;
+        return RefreshIndicator(
+          onRefresh: _refresh,
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            children: [
+              Text(
+                'Driver activity',
+                style: GoogleFonts.poppins(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'Load history and performance for every registered driver.',
+              ),
+              const SizedBox(height: 16),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Account mix',
+                        style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 8),
+                      if (hasAccounts)
+                        SizedBox(
+                          height: 190,
+                          child: PieChart(
+                            PieChartData(
+                              sectionsSpace: 4,
+                              centerSpaceRadius: 36,
+                              sections: [
+                                if (data.traderCount > 0)
+                                  PieChartSectionData(
+                                    value: data.traderCount.toDouble(),
+                                    title: 'Traders ${data.traderCount}',
+                                    color: Colors.green,
+                                    radius: 52,
+                                    titleStyle: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                if (drivers.isNotEmpty)
+                                  PieChartSectionData(
+                                    value: drivers.length.toDouble(),
+                                    title: 'Drivers ${drivers.length}',
+                                    color: Colors.orange,
+                                    radius: 52,
+                                    titleStyle: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        )
+                      else
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24),
+                          child: Center(
+                            child: Text('No traders or drivers yet.'),
+                          ),
+                        ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 16,
+                        runSpacing: 8,
+                        children: [
+                          Text('Traders: ${data.traderCount}'),
+                          Text('Drivers: ${drivers.length}'),
+                          Text('Assigned loads: ${allLoads.length}'),
+                          Text('Delivered: $delivered'),
+                          Text('Load value: ${_formatOmr(totalValue)} OMR'),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              if (drivers.isEmpty)
+                const Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Text('No drivers registered yet.'),
+                  ),
+                ),
+              for (final driver in drivers) _DriverReportCard(driver: driver),
+            ],
+          ),
+        );
+      },
+    ),
+  );
+}
+
+class _ReportData {
+  const _ReportData({required this.drivers, required this.traderCount});
+  final List<Map<String, dynamic>> drivers;
+  final int traderCount;
+}
+
+List<Map<String, dynamic>> _loadsOf(Map<String, dynamic> driver) {
+  final raw = driver['loads'];
+  if (raw is! List) return const [];
+  return raw
+      .whereType<Map>()
+      .map((load) => Map<String, dynamic>.from(load))
+      .toList();
+}
+
+Future<_ReportData> _loadDriverReports() async {
+  final db = Supabase.instance.client;
+  final profileRows = await db
+      .from('profiles')
+      .select('id, full_name, phone, user_type, is_active')
+      .inFilter('user_type', ['Trader', 'Driver']);
+  final profiles = profileRows
+      .map((row) => Map<String, dynamic>.from(row))
+      .toList();
+  final drivers = profiles
+      .where((profile) => profile['user_type'] == 'Driver')
+      .toList();
+  final traderCount = profiles
+      .where((profile) => profile['user_type'] == 'Trader')
+      .length;
+
+  final loadsByDriver = <String, List<Map<String, dynamic>>>{};
+  if (drivers.isNotEmpty) {
+    final driverIds = drivers.map((driver) => '${driver['id']}').toList();
+    final loadRows = await db
+        .from('loads')
+        .select()
+        .inFilter('driver_id', driverIds)
+        .order('created_at', ascending: false);
+    for (final row in loadRows) {
+      final load = Map<String, dynamic>.from(row);
+      loadsByDriver
+          .putIfAbsent('${load['driver_id']}', () => <Map<String, dynamic>>[])
+          .add(load);
+    }
+  }
+  for (final driver in drivers) {
+    driver['loads'] =
+        loadsByDriver['${driver['id']}'] ?? <Map<String, dynamic>>[];
+  }
+  return _ReportData(drivers: drivers, traderCount: traderCount);
+}
+
+String _driverName(Map<String, dynamic> driver, String fallback) {
+  final name = driver['full_name']?.toString().trim() ?? '';
+  if (name.isNotEmpty) return name;
+  final phone = driver['phone']?.toString().trim() ?? '';
+  return phone.isNotEmpty ? phone : fallback;
+}
+
+bool _isActiveLoad(Map<String, dynamic> load) =>
+    load['status'] == 'Accepted' || load['status'] == 'In transit';
+
+class _DriverReportCard extends StatelessWidget {
+  const _DriverReportCard({required this.driver});
+  final Map<String, dynamic> driver;
+
+  @override
+  Widget build(BuildContext context) {
+    final loads = _loadsOf(driver);
+    final name = _driverName(driver, 'Unnamed driver');
+    final completed = loads
+        .where((load) => load['status'] == 'Delivered')
+        .length;
+    final active = loads.where(_isActiveLoad).length;
+    final value = loads.fold<num>(
+      0,
+      (sum, load) => sum + ((load['price_omr'] as num?) ?? 0),
+    );
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      child: ExpansionTile(
+        leading: CircleAvatar(
+          child: Text(name.isEmpty ? '?' : name[0].toUpperCase()),
+        ),
+        title: Text(name),
+        subtitle: Text(
+          '${loads.length} loads - $completed delivered - $active active - ${_formatOmr(value)} OMR',
+        ),
+        children: [
+          if (loads.isEmpty)
+            const ListTile(title: Text('No assigned loads yet')),
+          for (final load in loads)
+            ListTile(
+              dense: true,
+              isThreeLine: true,
+              leading: const Icon(Icons.inventory_2_outlined),
+              title: Text('#${load['id']} ${load['product'] ?? 'Load'}'),
+              subtitle: Text(
+                '${load['pickup_location'] ?? 'Unknown'} to ${load['delivery_location'] ?? 'Unknown'} - ${load['status'] ?? 'Unknown'}\nWeight: ${load['weight'] ?? 'Unknown'} - Created: ${_reportDate(load['created_at'])}',
+              ),
+              trailing: Text('${_formatOmr(load['price_omr'])} OMR'),
+            ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 8, bottom: 4),
+              child: TextButton.icon(
+                onPressed: () => _downloadDriverReport(context, driver),
+                icon: const Icon(Icons.picture_as_pdf_outlined),
+                label: const Text('Print / Download PDF'),
+              ),
+            ),
+          ),
+        ],
       ),
+    );
+  }
+}
+
+String _reportDate(dynamic value) {
+  final date = DateTime.tryParse('$value')?.toLocal();
+  if (date == null) return 'Unknown';
+  return '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+}
+
+Future<void> _downloadDriverReport(
+  BuildContext context,
+  Map<String, dynamic> driver,
+) async {
+  final messenger = ScaffoldMessenger.of(context);
+  try {
+    final loads = _loadsOf(driver);
+    final name = _driverName(driver, 'Driver');
+    final delivered = loads
+        .where((load) => load['status'] == 'Delivered')
+        .length;
+    final active = loads.where(_isActiveLoad).length;
+    final total = loads.fold<num>(
+      0,
+      (sum, load) => sum + ((load['price_omr'] as num?) ?? 0),
+    );
+    final isActive = driver['is_active'] as bool? ?? true;
+    final document = pw.Document();
+    document.addPage(
+      pw.MultiPage(
+        build: (pw.Context pdfContext) => <pw.Widget>[
+          pw.Text(
+            'Driver Activity Report',
+            style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold),
+          ),
+          pw.SizedBox(height: 12),
+          pw.Text('Driver: $name'),
+          pw.Text('Phone: ${driver['phone'] ?? 'Not provided'}'),
+          pw.Text('Account status: ${isActive ? 'Active' : 'Suspended'}'),
+          pw.Text(
+            'Report generated: ${_reportDate(DateTime.now().toIso8601String())}',
+          ),
+          pw.SizedBox(height: 8),
+          pw.Text(
+            'Loads: ${loads.length} | Delivered: $delivered | Active: $active | Total load value: ${_formatOmr(total)} OMR',
+          ),
+          pw.SizedBox(height: 16),
+          if (loads.isEmpty) pw.Text('No loads assigned to this driver.'),
+          if (loads.isNotEmpty)
+            pw.TableHelper.fromTextArray(
+              headers: <String>[
+                'ID / Product',
+                'Route',
+                'Status',
+                'Weight',
+                'OMR',
+                'Created',
+              ],
+              data: loads
+                  .map(
+                    (load) => <String>[
+                      '#${load['id']} ${load['product'] ?? ''}',
+                      '${load['pickup_location'] ?? ''} to ${load['delivery_location'] ?? ''}',
+                      '${load['status'] ?? ''}',
+                      '${load['weight'] ?? ''}',
+                      _formatOmr(load['price_omr']),
+                      _reportDate(load['created_at']),
+                    ],
+                  )
+                  .toList(),
+              headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+              cellStyle: const pw.TextStyle(fontSize: 8),
+            ),
+        ],
+      ),
+    );
+    final bytes = await document.save();
+    final slug = '${driver['full_name'] ?? driver['id']}'.replaceAll(
+      RegExp(r'[^a-zA-Z0-9_-]'),
+      '_',
+    );
+    await Printing.layoutPdf(
+      name: 'driver_${slug}_report.pdf',
+      onLayout: (_) async => bytes,
+    );
+  } catch (error) {
+    messenger.showSnackBar(
+      SnackBar(content: Text('Could not create PDF: $error')),
     );
   }
 }
