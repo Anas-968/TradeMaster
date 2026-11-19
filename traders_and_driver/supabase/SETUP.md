@@ -2,6 +2,7 @@
 
 1. Open the project's Supabase dashboard and go to **SQL Editor**.
 2. Run the full [`schema.sql`](schema.sql) script. It creates the profiles and loads tables, row-level security policies, the signup profile trigger, and the atomic `accept_load` function. It also backfills profiles for existing accounts.
+   The schema schedules an hourly `pg_cron` job that permanently deletes loads after their 90-day expiry. For an existing database, run [`migrations/20261119_load_expiry_and_trader_actions.sql`](migrations/20261119_load_expiry_and_trader_actions.sql) in the SQL Editor instead of rerunning the full schema. Confirm the `pg_cron` extension is available in the Supabase project; the migration enables it and schedules the cleanup job.
 3. Grant the administrator account trusted `app_metadata` with `is_admin: true`. From the SQL Editor, replace the phone number and run:
 
    ```sql

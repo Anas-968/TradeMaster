@@ -28,7 +28,11 @@ class HomePage extends StatelessWidget {
               ),
               child: Stack(
                 children: [
-                  const Positioned(top: 40, right: 12, child: ThemeToggleButton()),
+                  const Positioned(
+                    top: 40,
+                    right: 12,
+                    child: ThemeToggleButton(),
+                  ),
                   // Decorative elements as per design
                   Positioned(
                     top: 50,
@@ -279,7 +283,7 @@ class HomePage extends StatelessWidget {
               ],
             ),
           ),
-          Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
+          //Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
         ],
       ),
     );

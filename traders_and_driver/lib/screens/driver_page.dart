@@ -641,6 +641,7 @@ class AvailableLoadsPage extends StatelessWidget {
         ),
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
+        automaticallyImplyLeading: false,
       ),
       body: AnimatedBuilder(
         animation: DriverLoadStore.instance,
@@ -741,6 +742,7 @@ class DriverJobsPage extends StatelessWidget {
             title: Text('My Jobs', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
             backgroundColor: primaryColor,
             foregroundColor: Colors.white,
+            automaticallyImplyLeading: false,
             bottom: const TabBar(tabs: [Tab(text: 'Active'), Tab(text: 'Delivered')]),
           ),
           body: AnimatedBuilder(
@@ -874,3 +876,4 @@ class DriverJobsPage extends StatelessWidget {
     }
   }
 }
+
