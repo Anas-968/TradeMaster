@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "161589163378",
+    "project_id": "trademaster-8181c",
+    "storage_bucket": "trademaster-8181c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:161589163378:android:2678bf980a3e70044499eb",
+        "android_client_info": {
+          "package_name": "com.example.traders_and_drivers"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCm2esHI50hSIoWg1xFtUR6A_cdRPjdR-s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

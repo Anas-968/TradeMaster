@@ -10,14 +10,21 @@ import 'screens/register_page.dart';
 import 'screens/reset_password_page.dart';
 import 'screens/trader_page.dart';
 import 'theme_controller.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'fcm_notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  debugPrint('🔥 Initializing Firebase...');
+  await Firebase.initializeApp();
+  debugPrint('✅ Firebase initialized');
   await Supabase.initialize(
     url: 'https://bqerwxkixqgiofndeocy.supabase.co',
     anonKey:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJxZXJ3eGtpeHFnaW9mbmRlb2N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxOTYxNzIsImV4cCI6MjA5Mjc3MjE3Mn0.LZ0qKNlj9JBwlV1n3kJ33gvqzQ0ihQ1fjQltPLT8NLE',
   );
+  await FcmNotificationService.initialize();
+
   runApp(const MyApp());
 }
 
@@ -31,7 +38,9 @@ class MyApp extends StatelessWidget {
       builder: (context, _) => MaterialApp(
         title: 'TradeMaster',
         debugShowCheckedModeBanner: false,
-        themeMode: AppThemeController.instance.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+        themeMode: AppThemeController.instance.isDarkMode
+            ? ThemeMode.dark
+            : ThemeMode.light,
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1A237E)),
           fontFamily: 'Poppins',
