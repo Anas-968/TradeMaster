@@ -28,6 +28,15 @@ class HomePage extends StatelessWidget {
               ),
               child: Stack(
                 children: [
+                  Positioned.fill(
+                    child: Opacity(
+                      opacity: 0.16,
+                      child: Image.asset(
+                        'assets/images/trademaster_icon.png',
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
                   const Positioned(
                     top: 40,
                     right: 12,
@@ -77,10 +86,12 @@ class HomePage extends StatelessWidget {
                               ),
                             ],
                           ),
-                          child: const Icon(
-                            Icons.store,
-                            size: 50,
-                            color: Color(0xFF1A237E),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(25),
+                            child: Image.asset(
+                              'assets/images/trademaster_icon.png',
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 25),
