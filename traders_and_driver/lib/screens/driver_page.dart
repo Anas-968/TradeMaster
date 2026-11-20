@@ -3,6 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme_controller.dart';
+import 'assistant_chat_page.dart';
 
 const Color primaryColor = Color(0xFF1A237E);
 
@@ -26,6 +27,7 @@ class _DriverPageState extends State<DriverPage> {
     DriverDashboard(),
     AvailableLoadsPage(),
     DriverJobsPage(),
+    AssistantChatPage(),
   ];
 
   @override
@@ -48,6 +50,7 @@ class _DriverPageState extends State<DriverPage> {
             label: 'Find Loads',
           ),
           BottomNavigationBarItem(icon: Icon(Icons.work), label: 'My Jobs'),
+          BottomNavigationBarItem(icon: Icon(Icons.auto_awesome), label: 'AI Help'),
         ],
       ),
     );

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme_controller.dart';
 import 'admin_page.dart';
+import 'assistant_chat_page.dart';
 
 const List<String> omanLocations = [
   'Muscat',
@@ -58,6 +59,7 @@ class _TraderPageState extends State<TraderPage> {
     const TraderDashboard(),
     const AddProductPage(),
     const TraderProductsPage(),
+    const AssistantChatPage(),
   ];
 
   @override
@@ -116,6 +118,10 @@ class _TraderPageState extends State<TraderPage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.inventory),
             label: 'My Products',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.auto_awesome),
+            label: 'AI Help',
           ),
         ],
       ),

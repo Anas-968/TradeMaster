@@ -147,6 +147,14 @@ class HomePage extends StatelessWidget {
                   ),
                   const SizedBox(height: 40),
 
+                  /*  OutlinedButton.icon(
+                    onPressed: () => Navigator.pushNamed(context, '/assistant'),
+                    icon: const Icon(Icons.auto_awesome),
+                    label: const Text('Ask the TradeMaster AI Assistant'),
+                  ),
+                  const SizedBox(height: 20),
+                  */
+
                   // Feature Cards as per design
                   _buildFeatureCard(
                     context,
