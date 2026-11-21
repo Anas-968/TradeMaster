@@ -12,6 +12,16 @@ class HomePage extends StatelessWidget {
     final displayName =
         user?.userMetadata?['full_name'] ?? user?.phone ?? 'Guest';
     return Scaffold(
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => Navigator.pushNamed(context, '/support'),
+        backgroundColor: const Color(0xFF1A237E),
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.support_agent),
+        label: Text(
+          'Live Chat Support',
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+        ),
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -148,7 +158,7 @@ class HomePage extends StatelessWidget {
                   const SizedBox(height: 40),
 
                   /*  OutlinedButton.icon(
-                    onPressed: () => Navigator.pushNamed(context, '/assistant'),
+                    onPressed: () => Navigator.pushNamed(context, '/support'),
                     icon: const Icon(Icons.auto_awesome),
                     label: const Text('Ask the TradeMaster AI Assistant'),
                   ),

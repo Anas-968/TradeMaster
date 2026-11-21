@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../theme_controller.dart';
+import 'support_chat_page.dart';
 
 class AdminPage extends StatefulWidget {
   const AdminPage({super.key});
@@ -19,6 +20,7 @@ class _AdminPageState extends State<AdminPage> {
     AdminDashboard(),
     AdminUsersPage(),
     AdminReportsPage(),
+    SupportChatPage(),
   ];
 
   @override
@@ -41,6 +43,7 @@ class _AdminPageState extends State<AdminPage> {
             icon: Icon(Icons.bar_chart),
             label: 'Reports',
           ),
+          BottomNavigationBarItem(icon: Icon(Icons.support_agent), label: 'Support'),
         ],
       ),
     );
@@ -404,6 +407,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
         ),
         backgroundColor: const Color(0xFF1A237E),
         foregroundColor: Colors.white,
+        automaticallyImplyLeading: false,
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _users,

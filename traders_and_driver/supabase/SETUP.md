@@ -33,3 +33,11 @@ The in-app assistant calls the `assistant-chat` Supabase Edge Function. The func
 The Edge Function limits requests to 20 messages, 4,000 characters per message, and 500 generated tokens. Chat history is kept in app memory only and is sent to the function for each reply.
 
 The app's Supabase URL and anonymous key remain configured in `lib/main.dart`; use your own project's values before distributing the app.
+
+## Human support chat setup
+
+1. In Supabase Dashboard, enable **Anonymous Sign-Ins** under Authentication settings.
+2. Run [`migrations/20261121_live_support_chat.sql`](migrations/20261121_live_support_chat.sql) in the SQL Editor.
+3. Customers can open **Live Chat Support** from the home screen without an account. Signed-in administrators can reply from the **Support** tab in the admin panel.
+
+Guest conversations are attached to that device's anonymous session. Clearing app data removes access to the guest session and its conversation.

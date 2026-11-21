@@ -6,6 +6,7 @@ import 'screens/forgot_password_flow.dart';
 import 'screens/home_page.dart';
 import 'screens/change_password_page.dart';
 import 'screens/assistant_chat_page.dart';
+import 'screens/support_chat_page.dart';
 import 'screens/login_page.dart';
 import 'screens/register_page.dart';
 import 'screens/reset_password_page.dart';
@@ -69,6 +70,7 @@ class MyApp extends StatelessWidget {
           '/admin': (context) => const AdminPage(),
           '/change-password': (context) => const ChangePasswordPage(),
           '/assistant': (context) => const AssistantChatPage(),
+          '/support': (context) => const SupportChatPage(),
         },
       ),
     );
