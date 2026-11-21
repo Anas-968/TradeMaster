@@ -525,7 +525,7 @@ class DriverDashboard extends StatelessWidget {
               ),
             ),
             Text(
-              title,
+              appText(title),
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600]),
             ),

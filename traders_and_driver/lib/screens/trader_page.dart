@@ -603,7 +603,7 @@ class TraderDashboard extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                title,
+                appText(title),
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -644,7 +644,7 @@ class TraderLoadsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: Text(title),
+      title: Text(appText(title)),
       backgroundColor: const Color(0xFF1A237E),
       foregroundColor: Colors.white,
     ),
