@@ -41,3 +41,21 @@ The app's Supabase URL and anonymous key remain configured in `lib/main.dart`; u
 3. Customers can open **Live Chat Support** from the home screen without an account. Signed-in administrators can reply from the **Support** tab in the admin panel.
 
 Guest conversations are attached to that device's anonymous session. Clearing app data removes access to the guest session and its conversation.
+
+## Push notifications
+
+The app registers signed-in devices in `public.device_tokens`. The database migration sends load and support-message events to the `send-notification` Edge Function. The function sends Firebase Cloud Messaging (FCM) pushes to all of a user's registered devices. It sends notifications for new loads to active drivers, accepted/delivered status changes to the load's trader, and customer support messages to administrators whose trusted `app_metadata.is_admin` claim is `true`.
+
+1. Make sure Firebase Cloud Messaging is enabled for the Firebase project used by the app. Create a Firebase service account key with permission to send FCM messages. Keep its JSON private; never commit it or put it in the Flutter app. iOS also requires an APNs authentication key configured in Firebase.
+2. In Supabase Dashboard, open **Edge Functions → Secrets** and add `FIREBASE_SERVICE_ACCOUNT_JSON` with the full contents of the Firebase service account JSON file, and `NOTIFICATION_HOOK_SECRET` with a long random value. Then deploy the function from the project folder:
+
+   ```powershell
+   supabase functions deploy send-notification --no-verify-jwt
+   ```
+
+   `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are provided to the Edge Function by Supabase. The function endpoint is `https://bqerwxkixqgiofndeocy.supabase.co/functions/v1/send-notification` for this project.
+3. In Supabase Dashboard, open **Vault** and add two secrets. Name the first `notification_function_url` and set its value to that function endpoint. Name the second `notification_hook_secret` and set its value to the same random value used for `NOTIFICATION_HOOK_SECRET` above.
+4. Run [`migrations/20261122_push_notifications.sql`](migrations/20261122_push_notifications.sql) in the Supabase SQL Editor. It creates the token table, secure token-registration RPC, and database triggers. The Vault secrets must exist before the triggers can send events.
+5. Run `flutter pub get`, then rebuild and reinstall the app on each device. Users must allow notifications and sign in at least once on each device so the FCM token is registered.
+
+The database hook is authenticated with the shared Vault secret. Rotate it in both the Edge Function secrets and Vault together if it is changed. The support notification is only sent when the message sender is the conversation owner, so admin replies do not alert the admins.

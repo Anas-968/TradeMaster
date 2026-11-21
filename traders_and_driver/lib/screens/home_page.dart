@@ -155,15 +155,7 @@ class HomePage extends StatelessWidget {
                       height: 1.5,
                     ),
                   ),
-                  const SizedBox(height: 40),
-
-                  /*  OutlinedButton.icon(
-                    onPressed: () => Navigator.pushNamed(context, '/support'),
-                    icon: const Icon(Icons.auto_awesome),
-                    label: const Text('Ask the TradeMaster AI Assistant'),
-                  ),
                   const SizedBox(height: 20),
-                  */
 
                   // Feature Cards as per design
                   _buildFeatureCard(
@@ -246,7 +238,7 @@ class HomePage extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 60),
                 ],
               ),
             ),
