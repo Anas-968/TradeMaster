@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../language_controller.dart';
 
 enum _RegistrationErrorType { rateLimited, invalidOtp, network, unknown }
 
@@ -299,7 +300,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      'Create Account',
+                      appText('Create Account'),
                       style: GoogleFonts.poppins(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
@@ -308,7 +309,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Register with your phone number',
+                      appText('Register with your phone number'),
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         color: Colors.grey[600],
@@ -324,22 +325,22 @@ class _RegisterPageState extends State<RegisterPage> {
                   children: [
                     if (!_otpSent) ...[
                       // Full Name
-                      Text('Full Name', style: _labelStyle()),
+                      Text(appText('Full Name'), style: _labelStyle()),
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: _fullNameController,
                         decoration: _inputDecoration(
-                          'Enter your full name',
+                          appText('Enter your full name'),
                           Icons.person_outline,
                         ),
                         validator: (v) => v == null || v.isEmpty
-                            ? 'Full name required'
+                            ? appText('Full name required')
                             : null,
                       ),
                       const SizedBox(height: 20),
 
                       // Phone Number
-                      Text('Phone Number', style: _labelStyle()),
+                      Text(appText('Phone Number'), style: _labelStyle()),
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: _phoneController,
@@ -350,16 +351,16 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty)
-                            return 'Phone number required';
+                            return appText('Phone number required');
                           String digits = value.replaceAll(RegExp(r'\D'), '');
                           if (digits.length == 8) return null;
-                          return 'Enter 8 digits (Oman phone number)';
+                          return appText('Enter 8 digits (Oman phone number)');
                         },
                       ),
                       const SizedBox(height: 20),
 
                       // User Type
-                      Text('User Type', style: _labelStyle()),
+                      Text(appText('User Type'), style: _labelStyle()),
                       const SizedBox(height: 8),
                       Container(
                         decoration: BoxDecoration(
@@ -369,7 +370,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         child: DropdownButtonFormField<String>(
                           value: _selectedUserType,
                           hint: Text(
-                            'Select user type',
+                            appText('Select user type'),
                             style: GoogleFonts.poppins(color: Colors.grey[400]),
                           ),
                           items: _userTypes
@@ -383,13 +384,13 @@ class _RegisterPageState extends State<RegisterPage> {
                           onChanged: (v) =>
                               setState(() => _selectedUserType = v),
                           validator: (v) =>
-                              v == null ? 'Select user type' : null,
+                              v == null ? appText('Select user type') : null,
                         ),
                       ),
                       const SizedBox(height: 20),
 
                       // Password
-                      Text('Create Password', style: _labelStyle()),
+                      Text(appText('Create Password'), style: _labelStyle()),
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: _passwordController,
@@ -413,23 +414,23 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                         validator: (v) {
                           if (v == null || v.isEmpty)
-                            return 'Password required';
+                            return appText('Password required');
                           if (!_isStrongPassword(v))
-                            return 'Use uppercase, lowercase, and special char';
+                            return appText('Use uppercase, lowercase, and special char');
                           return null;
                         },
                       ),
                       const SizedBox(height: 20),
 
                       // Confirm Password
-                      Text('Confirm Password', style: _labelStyle()),
+                      Text(appText('Confirm Password'), style: _labelStyle()),
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: _confirmPasswordController,
                         obscureText: _obscureConfirmPassword,
                         decoration:
                             _inputDecoration(
-                              'Confirm your password',
+                              appText('Confirm your password'),
                               Icons.lock_outline,
                             ).copyWith(
                               suffixIcon: IconButton(
@@ -462,7 +463,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           style: _buttonStyle(),
                           child: _isLoading
                               ? _loader()
-                              : Text('Send OTP', style: _buttonTextStyle()),
+                              : Text(appText('Send OTP'), style: _buttonTextStyle()),
                         ),
                       ),
                     ],
@@ -485,7 +486,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                             const SizedBox(height: 12),
                             Text(
-                              'OTP Sent!',
+                              appText('OTP Sent!'),
                               style: GoogleFonts.poppins(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -549,7 +550,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           child: _isLoading
                               ? _loader()
                               : Text(
-                                  'Verify & Register',
+                                  appText('Verify & Register'),
                                   style: _buttonTextStyle(),
                                 ),
                         ),
@@ -560,7 +561,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       TextButton(
                         onPressed: _isLoading ? null : _sendOtp,
                         child: Text(
-                          'Resend Code',
+                          appText('Resend Code'),
                           style: GoogleFonts.poppins(
                             color: const Color(0xFF1A237E),
                           ),
@@ -576,7 +577,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           });
                         },
                         child: Text(
-                          'Edit Phone Number',
+                          appText('Edit Phone Number'),
                           style: GoogleFonts.poppins(color: Colors.grey[600]),
                         ),
                       ),
@@ -589,13 +590,13 @@ class _RegisterPageState extends State<RegisterPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          "Already have an account? ",
+                          appText("Already have an account? "),
                           style: GoogleFonts.poppins(color: Colors.grey[600]),
                         ),
                         TextButton(
                           onPressed: () => Navigator.pop(context),
                           child: Text(
-                            'Login',
+                            appText('Login'),
                             style: GoogleFonts.poppins(
                               color: const Color(0xFF1A237E),
                               fontWeight: FontWeight.bold,

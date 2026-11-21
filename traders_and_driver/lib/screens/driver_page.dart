@@ -3,6 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme_controller.dart';
+import '../language_controller.dart';
 import 'assistant_chat_page.dart';
 
 const Color primaryColor = Color(0xFF1A237E);
@@ -200,7 +201,7 @@ class DriverDashboard extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Driver Dashboard',
+          appText('Driver Dashboard'),
           style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
         ),
         backgroundColor: primaryColor,
@@ -333,10 +334,10 @@ class DriverDashboard extends StatelessWidget {
                                 ? TextButton(
                                     onPressed: () =>
                                         showLoadDetails(context, load),
-                                    child: const Text('Awaiting'),
+                                    child: Text(appText('Awaiting')),
                                   )
-                                : const Chip(
-                                    label: Text('Accepted'),
+                                : Chip(
+                                    label: Text(appText('Accepted')),
                                     backgroundColor: Color(0xFFC8E6C9),
                                   ),
                             onTap: () => showLoadDetails(context, load),
@@ -596,14 +597,14 @@ Future<void> showLoadDetails(BuildContext context, DriverLoad load) async {
                   }
                 },
                 icon: const Icon(Icons.check),
-                label: const Text('Accept Order'),
+                label: Text(appText('Accept Order')),
               )
             else if (load.status == 'Delivered')
-              const Chip(avatar: Icon(Icons.check_circle, color: Colors.green), label: Text('Delivered'))
+              Chip(avatar: const Icon(Icons.check_circle, color: Colors.green), label: Text(appText('Delivered')))
             else
-              const Chip(
+              Chip(
                 avatar: Icon(Icons.check_circle, color: Colors.green),
-                label: Text('Already accepted'),
+                label: Text(appText('Already accepted')),
               ),
           ],
         );
@@ -639,7 +640,7 @@ class AvailableLoadsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Available Loads',
+          appText('Available Loads'),
           style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
         ),
         backgroundColor: primaryColor,
@@ -706,7 +707,7 @@ class AvailableLoadsPage extends StatelessWidget {
                           Expanded(
                             child: OutlinedButton(
                               onPressed: () => showLoadDetails(context, load),
-                              child: const Text('View Details'),
+                              child: Text(appText('View Details')),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -717,7 +718,7 @@ class AvailableLoadsPage extends StatelessWidget {
                                 backgroundColor: primaryColor,
                                 foregroundColor: Colors.white,
                               ),
-                              child: const Text('Accept Order'),
+                              child: Text(appText('Accept Order')),
                             ),
                           ),
                         ],

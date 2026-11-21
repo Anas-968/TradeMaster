@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'language_controller.dart';
 
 /// Holds the app-wide theme choice so it follows the user across every route.
 class AppThemeController extends ChangeNotifier {
@@ -18,9 +19,21 @@ class ThemeToggleButton extends StatelessWidget {
   const ThemeToggleButton({super.key});
 
   @override
-  Widget build(BuildContext context) => IconButton(
-    tooltip: AppThemeController.instance.isDarkMode ? 'Switch to light mode' : 'Switch to dark mode',
-    onPressed: AppThemeController.instance.toggle,
-    icon: Icon(AppThemeController.instance.isDarkMode ? Icons.light_mode : Icons.dark_mode),
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      const LanguageToggleButton(),
+      IconButton(
+        tooltip: AppThemeController.instance.isDarkMode
+            ? 'Switch to light mode'
+            : 'Switch to dark mode',
+        onPressed: AppThemeController.instance.toggle,
+        icon: Icon(
+          AppThemeController.instance.isDarkMode
+              ? Icons.light_mode
+              : Icons.dark_mode,
+        ),
+      ),
+    ],
   );
 }

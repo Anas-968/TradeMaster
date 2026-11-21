@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/admin_page.dart';
 import 'screens/driver_page.dart';
@@ -12,6 +13,7 @@ import 'screens/register_page.dart';
 import 'screens/reset_password_page.dart';
 import 'screens/trader_page.dart';
 import 'theme_controller.dart';
+import 'language_controller.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'fcm_notification_service.dart';
 
@@ -36,9 +38,15 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: AppThemeController.instance,
+      animation: Listenable.merge([
+        AppThemeController.instance,
+        AppLanguageController.instance,
+      ]),
       builder: (context, _) => MaterialApp(
         title: 'TradeMaster',
+        locale: AppLanguageController.instance.locale,
+        supportedLocales: const [Locale('en'), Locale('ar')],
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
         debugShowCheckedModeBanner: false,
         themeMode: AppThemeController.instance.isDarkMode
             ? ThemeMode.dark
@@ -55,6 +63,10 @@ class MyApp extends StatelessWidget {
           ),
           fontFamily: 'Poppins',
           useMaterial3: true,
+        ),
+        builder: (context, child) => Directionality(
+          textDirection: AppLanguageController.instance.textDirection,
+          child: child ?? const SizedBox.shrink(),
         ),
         initialRoute: '/',
         routes: {

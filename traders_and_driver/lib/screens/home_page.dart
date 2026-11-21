@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme_controller.dart';
+import '../language_controller.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -18,7 +19,7 @@ class HomePage extends StatelessWidget {
         foregroundColor: Colors.white,
         icon: const Icon(Icons.support_agent),
         label: Text(
-          'Live Chat Support',
+          appText('Live Chat Support'),
           style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
         ),
       ),
@@ -106,7 +107,7 @@ class HomePage extends StatelessWidget {
                         ),
                         const SizedBox(height: 25),
                         Text(
-                          'TradeMaster',
+                          appText('TradeMaster'),
                           style: GoogleFonts.poppins(
                             fontSize: 34,
                             fontWeight: FontWeight.bold,
@@ -116,7 +117,7 @@ class HomePage extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Connect & Trade',
+                          appText('Connect & Trade'),
                           style: GoogleFonts.poppins(
                             fontSize: 16,
                             color: Colors.white70,
@@ -137,7 +138,7 @@ class HomePage extends StatelessWidget {
                 children: [
                   const SizedBox(height: 15),
                   Text(
-                    'Welcome To TradeMaster',
+                    appText('Welcome To TradeMaster'),
                     textAlign: TextAlign.center,
                     style: GoogleFonts.poppins(
                       fontSize: 26,
@@ -147,7 +148,7 @@ class HomePage extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Your platform for seamless trading between traders and drivers',
+                    appText('Your platform for seamless trading between traders and drivers'),
                     textAlign: TextAlign.center,
                     style: GoogleFonts.poppins(
                       fontSize: 14,
@@ -161,24 +162,24 @@ class HomePage extends StatelessWidget {
                   _buildFeatureCard(
                     context,
                     icon: Icons.trending_up,
-                    title: 'For Traders',
-                    description: 'Post your products and find reliable drivers',
+                    title: appText('For Traders'),
+                    description: appText('Post your products and find reliable drivers'),
                     color: const Color(0xFF1A237E),
                   ),
                   const SizedBox(height: 15),
                   _buildFeatureCard(
                     context,
                     icon: Icons.local_shipping,
-                    title: 'For Drivers',
-                    description: 'Find loads and earn money',
+                    title: appText('For Drivers'),
+                    description: appText('Find loads and earn money'),
                     color: const Color(0xFF1A237E),
                   ),
                   const SizedBox(height: 15),
                   _buildFeatureCard(
                     context,
                     icon: Icons.security,
-                    title: 'Secure Transactions',
-                    description: 'Safe and verified trading',
+                    title: appText('Secure Transactions'),
+                    description: appText('Safe and verified trading'),
                     color: const Color(0xFF1A237E),
                   ),
 
@@ -204,7 +205,7 @@ class HomePage extends StatelessWidget {
                             ),
                           ),
                           child: Text(
-                            'Login',
+                            appText('Login'),
                             style: GoogleFonts.poppins(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -227,7 +228,7 @@ class HomePage extends StatelessWidget {
                             elevation: 2,
                           ),
                           child: Text(
-                            'Register',
+                            appText('Register'),
                             style: GoogleFonts.poppins(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,

@@ -5,6 +5,7 @@ import 'admin_page.dart';
 import 'driver_page.dart';
 import 'home_page.dart';
 import 'trader_page.dart';
+import '../language_controller.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -187,7 +188,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      'Welcome Back!',
+                      appText('Welcome Back!'),
                       style: GoogleFonts.poppins(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
@@ -196,7 +197,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Login to your account',
+                      appText('Login to your account'),
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         color: Colors.grey[600],
@@ -212,7 +213,7 @@ class _LoginPageState extends State<LoginPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Phone Number',
+                      appText('Phone Number'),
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
@@ -228,7 +229,7 @@ class _LoginPageState extends State<LoginPage> {
                           Icons.phone_outlined,
                           color: Color(0xFF1A237E),
                         ),
-                        hintText: 'Enter your phone number',
+                        hintText: appText('Enter your phone number'),
                         filled: true,
                         fillColor: Colors.grey[50],
                         border: OutlineInputBorder(
@@ -255,7 +256,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      'Password',
+                      appText('Password'),
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
@@ -282,7 +283,7 @@ class _LoginPageState extends State<LoginPage> {
                             () => _obscurePassword = !_obscurePassword,
                           ),
                         ),
-                        hintText: 'Enter your password',
+                        hintText: appText('Enter your password'),
                         filled: true,
                         fillColor: Colors.grey[50],
                         border: OutlineInputBorder(
@@ -308,7 +309,7 @@ class _LoginPageState extends State<LoginPage> {
                         onPressed: () =>
                             Navigator.pushNamed(context, '/forgot-password'),
                         child: Text(
-                          'Forgot Password?',
+                          appText('Forgot Password?'),
                           style: GoogleFonts.poppins(
                             color: const Color(0xFF1A237E),
                             fontWeight: FontWeight.w500,
@@ -340,7 +341,7 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                               )
                             : Text(
-                                'Login',
+                                appText('Login'),
                                 style: GoogleFonts.poppins(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -354,14 +355,14 @@ class _LoginPageState extends State<LoginPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          "Don't have an account? ",
+                          appText("Don't have an account? "),
                           style: GoogleFonts.poppins(color: Colors.grey[600]),
                         ),
                         TextButton(
                           onPressed: () =>
                               Navigator.pushNamed(context, '/register'),
                           child: Text(
-                            'Register',
+                            appText('Register'),
                             style: GoogleFonts.poppins(
                               color: const Color(0xFF1A237E),
                               fontWeight: FontWeight.bold,

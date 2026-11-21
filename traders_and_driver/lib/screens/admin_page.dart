@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../theme_controller.dart';
+import '../language_controller.dart';
 import 'support_chat_page.dart';
 
 class AdminPage extends StatefulWidget {
@@ -68,7 +69,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Admin Panel',
+          appText('Admin Panel'),
           style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
         ),
         backgroundColor: const Color(0xFF1A237E),

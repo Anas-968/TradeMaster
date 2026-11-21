@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme_controller.dart';
+import '../language_controller.dart';
 import 'admin_page.dart';
 import 'assistant_chat_page.dart';
 
@@ -140,7 +141,7 @@ class TraderDashboard extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Trader Dashboard',
+          appText('Trader Dashboard'),
           style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
         ),
         backgroundColor: const Color(0xFF1A237E),
@@ -153,7 +154,7 @@ class TraderDashboard extends StatelessWidget {
         ],
       ),
       body: user == null
-          ? const Center(child: Text('Sign in to view your dashboard.'))
+          ? Center(child: Text(appText('Sign in to view your dashboard.')))
           : StreamBuilder<List<Map<String, dynamic>>>(
               stream: Supabase.instance.client
                   .from('loads')
