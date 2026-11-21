@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../language_controller.dart';
 
 class AssistantChatPage extends StatefulWidget {
   const AssistantChatPage({super.key});
@@ -12,9 +13,9 @@ class _AssistantChatPageState extends State<AssistantChatPage> {
   final _input = TextEditingController();
   final _scroll = ScrollController();
   final List<_ChatMessage> _messages = [
-    const _ChatMessage(
+    _ChatMessage(
       text:
-          'Hi! I’m your TradeMaster assistant. Ask me about using the app, posting loads, or finding a driver.',
+          appText('Hi! I’m your TradeMaster assistant. Ask me about using the app, posting loads, or finding a driver.'),
       fromUser: false,
     ),
   ];
@@ -32,8 +33,8 @@ class _AssistantChatPageState extends State<AssistantChatPage> {
     if (text.isEmpty || _sending) return;
     if (Supabase.instance.client.auth.currentSession == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please log in to chat with the assistant.'),
+        SnackBar(
+          content: Text(appText('Please log in to chat with the assistant.')),
         ),
       );
       return;
@@ -86,9 +87,9 @@ class _AssistantChatPageState extends State<AssistantChatPage> {
       if (!mounted) return;
       setState(
         () => _messages.add(
-          const _ChatMessage(
+          _ChatMessage(
             text:
-                'I couldn’t reach the assistant. Please check your connection and try again.',
+                appText('I couldn’t reach the assistant. Please check your connection and try again.'),
             fromUser: false,
             isError: true,
           ),
@@ -104,7 +105,7 @@ class _AssistantChatPageState extends State<AssistantChatPage> {
 
   String _functionErrorMessage(FunctionException error) {
     if (error.status == 404) {
-      return 'The assistant service was not found (HTTP 404). Deploy the assistant-chat Supabase function and try again.';
+      return appText('The assistant service was not found (HTTP 404). Deploy the assistant-chat Supabase function and try again.');
     }
     if (error.status == 401 || error.status == 403) {
       return 'Supabase rejected this request (HTTP ${error.status}). Sign out and back in, then check that the function accepts authenticated users.';
@@ -148,7 +149,7 @@ class _AssistantChatPageState extends State<AssistantChatPage> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Row(
+        title: Row(
           children: [
             CircleAvatar(
               radius: 17,
@@ -163,9 +164,9 @@ class _AssistantChatPageState extends State<AssistantChatPage> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('TradeMaster Assistant', style: TextStyle(fontSize: 16)),
+                Text(appText('TradeMaster Assistant'), style: TextStyle(fontSize: 16)),
                 Text(
-                  'Here to help',
+                  appText('Here to help'),
                   style: TextStyle(fontSize: 11, fontWeight: FontWeight.normal),
                 ),
               ],
@@ -263,7 +264,7 @@ class _AssistantChatPageState extends State<AssistantChatPage> {
                       textCapitalization: TextCapitalization.sentences,
                       onSubmitted: (_) => _send(),
                       decoration: InputDecoration(
-                        hintText: 'Ask TradeMaster…',
+                        hintText: appText('Ask TradeMaster…'),
                         filled: true,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(24),
@@ -278,7 +279,7 @@ class _AssistantChatPageState extends State<AssistantChatPage> {
                   ),
                   const SizedBox(width: 8),
                   IconButton.filled(
-                    tooltip: 'Send message',
+                    tooltip: appText('Send message'),
                     onPressed: _sending ? null : () => _send(),
                     icon: const Icon(Icons.arrow_upward),
                   ),

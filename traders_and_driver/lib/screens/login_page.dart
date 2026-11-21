@@ -42,11 +42,11 @@ class _LoginPageState extends State<LoginPage> {
     if (error is AuthException) {
       final message = error.message.toLowerCase();
       if (error.statusCode == '429' || message.contains('rate limit')) {
-        return 'Too many login attempts. Please wait a moment and try again.';
+        return appText('Too many login attempts. Please wait a moment and try again.');
       }
       if (message.contains('invalid login credentials') ||
           message.contains('invalid credentials')) {
-        return 'The phone number or password is incorrect.';
+        return appText('The phone number or password is incorrect.');
       }
       return 'Supabase login error${error.statusCode == null ? '' : ' (${error.statusCode})'}: ${error.message}';
     }
@@ -60,7 +60,7 @@ class _LoginPageState extends State<LoginPage> {
     final formattedPhone = _formatPhoneNumber(_phoneController.text.trim());
     if (formattedPhone == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a valid 8-digit Oman phone number.')),
+        SnackBar(content: Text(appText('Enter a valid 8-digit Oman phone number.'))),
       );
       return;
     }
@@ -94,8 +94,8 @@ class _LoginPageState extends State<LoginPage> {
         await Supabase.instance.client.auth.signOut();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('This account has been suspended. Contact support.'),
+            SnackBar(
+              content: Text(appText('This account has been suspended. Contact support.')),
             ),
           );
         }
@@ -121,9 +121,9 @@ class _LoginPageState extends State<LoginPage> {
       if (profileError != null && !isAdmin) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text(
-                'Could not read your account role. Check profiles table access and try again.',
+                appText('Could not read your account role. Check profiles table access and try again.'),
               ),
             ),
           );
@@ -246,10 +246,10 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'Please enter your phone number';
+                          return appText('Please enter your phone number');
                         }
                         if (_formatPhoneNumber(value) == null) {
-                          return 'Enter a valid 8-digit Oman phone number';
+                          return appText('Enter a valid 8-digit Oman phone number');
                         }
                         return null;
                       },
@@ -299,7 +299,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       validator: (value) => value == null || value.isEmpty
-                          ? 'Please enter your password'
+                          ? appText('Please enter your password')
                           : null,
                     ),
                     const SizedBox(height: 12),

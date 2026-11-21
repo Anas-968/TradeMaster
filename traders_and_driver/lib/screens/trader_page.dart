@@ -107,22 +107,22 @@ class _TraderPageState extends State<TraderPage> {
         onTap: (index) => setState(() => _selectedIndex = index),
         selectedItemColor: const Color(0xFF1A237E),
         unselectedItemColor: Colors.grey,
-        items: const [
+        items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard),
-            label: 'Dashboard',
+            label: appText('Dashboard'),
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.add_box),
-            label: 'Add Product',
+            label: appText('Add Product'),
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.inventory),
-            label: 'My Products',
+            label: appText('My Products'),
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.auto_awesome),
-            label: 'AI Help',
+            label: appText('AI Help'),
           ),
         ],
       ),
@@ -170,7 +170,7 @@ class TraderDashboard extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.all(24),
                       child: Text(
-                        'Could not load dashboard data: ${snapshot.error}',
+                        '${appText('Could not load dashboard data: ')}${snapshot.error}',
                       ),
                     ),
                   );
@@ -194,7 +194,7 @@ class TraderDashboard extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Welcome, $displayName',
+                                  '${appText('Welcome, ')}$displayName',
                                   style: GoogleFonts.poppins(
                                     fontSize: 23,
                                     fontWeight: FontWeight.bold,
@@ -202,7 +202,7 @@ class TraderDashboard extends StatelessWidget {
                                   ),
                                 ),
                                 Text(
-                                  'Here is what is happening with your orders.',
+                                  appText('Here is what is happening with your orders.'),
                                   style: GoogleFonts.poppins(
                                     fontSize: 13,
                                     color: Colors.grey[600],
@@ -232,7 +232,7 @@ class TraderDashboard extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  'LIVE',
+                                  appText('LIVE'),
                                   style: GoogleFonts.poppins(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w700,
@@ -313,7 +313,7 @@ class TraderDashboard extends StatelessWidget {
                       ),
                       const SizedBox(height: 24),
                       Text(
-                        'Real-Time Activity',
+                        appText('Real-Time Activity'),
                         style: GoogleFonts.poppins(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -322,11 +322,11 @@ class TraderDashboard extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       if (loads.isEmpty)
-                        const Padding(
+                        Padding(
                           padding: EdgeInsets.all(20),
                           child: Center(
                             child: Text(
-                              'No order activity yet. Post a load to get started.',
+                              appText('No order activity yet. Post a load to get started.'),
                             ),
                           ),
                         )
@@ -396,7 +396,7 @@ class TraderDashboard extends StatelessWidget {
                 ),
               ),
         title: Text(
-          'Load #${load['id']} · ${load['product'] ?? 'Order'}',
+          '${appText('Load #')}${load['id']} · ${load['product'] ?? 'Order'}',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13),
@@ -458,14 +458,14 @@ class TraderDashboard extends StatelessWidget {
           final profile = snapshot.data;
           final fullName = profile?['full_name']?.toString().trim() ?? '';
           return AlertDialog(
-            title: const Text('Driver details'),
+            title: Text(appText('Driver details')),
             content: snapshot.connectionState == ConnectionState.waiting
                 ? const SizedBox(
                     height: 80,
                     child: Center(child: CircularProgressIndicator()),
                   )
                 : snapshot.hasError
-                ? Text('Could not load driver details: ${snapshot.error}')
+                ? Text('${appText('Could not load driver details: ')}${snapshot.error}')
                 : Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -500,7 +500,7 @@ class TraderDashboard extends StatelessWidget {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Close'),
+                child: Text(appText('Close')),
               ),
             ],
           );
@@ -531,12 +531,12 @@ class TraderDashboard extends StatelessWidget {
 
   String _formatLoadDate(dynamic value) {
     final date = DateTime.tryParse(value?.toString() ?? '')?.toLocal();
-    if (date == null) return 'Recently';
+    if (date == null) return appText('Recently');
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 
   Widget _logoutButton(BuildContext context) => IconButton(
-    tooltip: 'Logout',
+    tooltip: appText('Logout'),
     icon: const Icon(Icons.logout),
     onPressed: () async {
       final shouldLogout = await _confirmLogout(context);
@@ -549,7 +549,7 @@ class TraderDashboard extends StatelessWidget {
   );
 
   Widget _resetPasswordButton(BuildContext context) => IconButton(
-    tooltip: 'Reset password',
+    tooltip: appText('Reset password'),
     icon: const Icon(Icons.lock_reset),
     onPressed: () => Navigator.pushNamed(context, '/reset-password'),
   );
@@ -557,16 +557,16 @@ class TraderDashboard extends StatelessWidget {
   Future<bool?> _confirmLogout(BuildContext context) => showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(
-      title: const Text('Log out?'),
-      content: const Text('You will need to log in again to continue.'),
+      title: Text(appText('Log out?')),
+      content: Text(appText('You will need to log in again to continue.')),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(dialogContext, false),
-          child: const Text('Cancel'),
+          child: Text(appText('Cancel')),
         ),
         FilledButton(
           onPressed: () => Navigator.pop(dialogContext, true),
-          child: const Text('Log out'),
+          child: Text(appText('Log out')),
         ),
       ],
     ),
@@ -716,18 +716,18 @@ class _AddProductPageState extends State<AddProductPage> {
     final publish = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Publish load?'),
-        content: const Text(
-          'Your load will be visible to drivers for up to 90 days. If it has not been removed earlier, it will be automatically deleted from the marketplace after that.',
+        title: Text(appText('Publish load?')),
+        content: Text(
+          appText('Your load will be visible to drivers for up to 90 days. If it has not been removed earlier, it will be automatically deleted from the marketplace after that.'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Review'),
+            child: Text(appText('Review')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Publish load'),
+            child: Text(appText('Publish load')),
           ),
         ],
       ),
@@ -750,15 +750,15 @@ class _AddProductPageState extends State<AddProductPage> {
       }
       if (mounted)
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Load posted. Drivers can now accept it.'),
+          SnackBar(
+            content: Text(appText('Load posted. Drivers can now accept it.')),
           ),
         );
     } catch (e) {
       if (mounted)
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Could not post load: $e')));
+        ).showSnackBar(SnackBar(content: Text('${appText('Could not post load: ')}$e')));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -769,7 +769,7 @@ class _AddProductPageState extends State<AddProductPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Add New Product',
+          appText('Add New Product'),
           style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
         ),
         backgroundColor: const Color(0xFF1A237E),
@@ -810,8 +810,8 @@ class _AddProductPageState extends State<AddProductPage> {
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
                   value: _paymentMethod,
-                  decoration: const InputDecoration(
-                    labelText: 'Payment method',
+                  decoration: InputDecoration(
+                    labelText: appText('Payment method'),
                     border: OutlineInputBorder(),
                   ),
                   items: demoPaymentMethods
@@ -827,10 +827,10 @@ class _AddProductPageState extends State<AddProductPage> {
                   },
                 ),
                 const SizedBox(height: 6),
-                const Align(
+                Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    'Project demo only. No payment is processed.',
+                    appText('Project demo only. No payment is processed.'),
                     style: TextStyle(color: Colors.black54, fontSize: 12),
                   ),
                 ),
@@ -878,10 +878,10 @@ class _AddProductPageState extends State<AddProductPage> {
     maxLines: maxLines,
     validator: (value) {
       if (required && (value == null || value.trim().isEmpty))
-        return 'Enter $label';
+        return '${appText('Enter ')}$label';
       if (number &&
           (double.tryParse(value ?? '') == null || double.parse(value!) < 0))
-        return 'Enter a valid amount';
+        return appText('Enter a valid amount');
       return null;
     },
     decoration: InputDecoration(
@@ -947,7 +947,7 @@ class _TraderProductsPageState extends State<TraderProductsPage> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: Text('Edit load #${load['id']}'),
+          title: Text('${appText('Edit load #')}${load['id']}'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -956,8 +956,8 @@ class _TraderProductsPageState extends State<TraderProductsPage> {
                   padding: const EdgeInsets.only(bottom: 10),
                   child: TextField(
                     controller: fields[0],
-                    decoration: const InputDecoration(
-                      labelText: 'Product',
+                    decoration: InputDecoration(
+                      labelText: appText('Product'),
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -967,8 +967,8 @@ class _TraderProductsPageState extends State<TraderProductsPage> {
                   child: TextField(
                     controller: fields[1],
                     maxLines: 3,
-                    decoration: const InputDecoration(
-                      labelText: 'Description',
+                    decoration: InputDecoration(
+                      labelText: appText('Description'),
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -977,8 +977,8 @@ class _TraderProductsPageState extends State<TraderProductsPage> {
                   padding: const EdgeInsets.only(bottom: 10),
                   child: DropdownButtonFormField<String>(
                     value: pickup,
-                    decoration: const InputDecoration(
-                      labelText: 'Pickup location',
+                    decoration: InputDecoration(
+                      labelText: appText('Pickup location'),
                       border: OutlineInputBorder(),
                     ),
                     items: omanLocations
@@ -991,8 +991,8 @@ class _TraderProductsPageState extends State<TraderProductsPage> {
                   padding: const EdgeInsets.only(bottom: 10),
                   child: DropdownButtonFormField<String>(
                     value: delivery,
-                    decoration: const InputDecoration(
-                      labelText: 'Delivery location',
+                    decoration: InputDecoration(
+                      labelText: appText('Delivery location'),
                       border: OutlineInputBorder(),
                     ),
                     items: omanLocations
@@ -1005,8 +1005,8 @@ class _TraderProductsPageState extends State<TraderProductsPage> {
                   padding: const EdgeInsets.only(bottom: 10),
                   child: TextField(
                     controller: fields[2],
-                    decoration: const InputDecoration(
-                      labelText: 'Weight (kg or tons)',
+                    decoration: InputDecoration(
+                      labelText: appText('Weight (kg or tons)'),
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -1018,8 +1018,8 @@ class _TraderProductsPageState extends State<TraderProductsPage> {
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
-                    decoration: const InputDecoration(
-                      labelText: 'Price (OMR)',
+                    decoration: InputDecoration(
+                      labelText: appText('Price (OMR)'),
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -1028,8 +1028,8 @@ class _TraderProductsPageState extends State<TraderProductsPage> {
                   padding: const EdgeInsets.only(bottom: 10),
                   child: DropdownButtonFormField<String>(
                     value: paymentMethod,
-                    decoration: const InputDecoration(
-                      labelText: 'Payment method',
+                    decoration: InputDecoration(
+                      labelText: appText('Payment method'),
                       border: OutlineInputBorder(),
                     ),
                     items: demoPaymentMethods
@@ -1046,8 +1046,8 @@ class _TraderProductsPageState extends State<TraderProductsPage> {
                     },
                   ),
                 ),
-                const Text(
-                  'Project demo only. No payment is processed.',
+                Text(
+                  appText('Project demo only. No payment is processed.'),
                   style: TextStyle(color: Colors.black54, fontSize: 12),
                 ),
               ],
@@ -1056,7 +1056,7 @@ class _TraderProductsPageState extends State<TraderProductsPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
+              child: Text(appText('Cancel')),
             ),
             FilledButton(
               onPressed:
@@ -1066,7 +1066,7 @@ class _TraderProductsPageState extends State<TraderProductsPage> {
                       double.parse(fields[3].text.trim()) < 0
                   ? null
                   : () => Navigator.pop(context, true),
-              child: const Text('Save'),
+              child: Text(appText('Save')),
             ),
           ],
         ),
@@ -1101,18 +1101,18 @@ class _TraderProductsPageState extends State<TraderProductsPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete this load?'),
+        title: Text(appText('Delete this load?')),
         content: Text(
-          'Load #${load['id']} will be permanently removed from the marketplace.',
+          '${appText('Load #')}${load['id']} will be permanently removed from the marketplace.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(appText('Cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
+            child: Text(appText('Delete')),
           ),
         ],
       ),
@@ -1145,14 +1145,14 @@ class _TraderProductsPageState extends State<TraderProductsPage> {
           final profile = snapshot.data;
           final name = profile?['full_name']?.toString().trim() ?? '';
           return AlertDialog(
-            title: const Text('Driver details'),
+            title: Text(appText('Driver details')),
             content: snapshot.connectionState == ConnectionState.waiting
                 ? const SizedBox(
                     height: 80,
                     child: Center(child: CircularProgressIndicator()),
                   )
                 : snapshot.hasError
-                ? Text('Could not load driver details: ${snapshot.error}')
+                ? Text('${appText('Could not load driver details: ')}${snapshot.error}')
                 : Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1181,7 +1181,7 @@ class _TraderProductsPageState extends State<TraderProductsPage> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Close'),
+                child: Text(appText('Close')),
               ),
             ],
           );
@@ -1211,7 +1211,7 @@ class _TraderProductsPageState extends State<TraderProductsPage> {
 
   String _formatLoadDate(dynamic value) {
     final date = DateTime.tryParse(value?.toString() ?? '')?.toLocal();
-    if (date == null) return 'Recently';
+    if (date == null) return appText('Recently');
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 
@@ -1227,7 +1227,7 @@ class _TraderProductsPageState extends State<TraderProductsPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'My Products',
+          appText('My Products'),
           style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
         ),
         backgroundColor: const Color(0xFF1A237E),
@@ -1241,12 +1241,12 @@ class _TraderProductsPageState extends State<TraderProductsPage> {
             return const Center(child: CircularProgressIndicator());
           if (snapshot.hasError)
             return Center(
-              child: Text('Could not load your posts: ${snapshot.error}'),
+              child: Text('${appText('Could not load your posts: ')}${snapshot.error}'),
             );
           final rows = snapshot.data ?? [];
           if (rows.isEmpty)
-            return const Center(
-              child: Text('You have not posted any loads yet.'),
+            return Center(
+              child: Text(appText('You have not posted any loads yet.')),
             );
           return ListView.builder(
             itemCount: rows.length,
@@ -1261,7 +1261,7 @@ class _TraderProductsPageState extends State<TraderProductsPage> {
                           color: Color(0xFF1A237E),
                         )
                       : IconButton(
-                          tooltip: 'View driver details',
+                          tooltip: appText('View driver details'),
                           onPressed: () => _showDriverDetails(load),
                           icon: const Icon(
                             Icons.person_search_outlined,
@@ -1278,7 +1278,7 @@ class _TraderProductsPageState extends State<TraderProductsPage> {
                       Text('${load['status']}'),
                       if (load['expires_at'] != null)
                         Text(
-                          'Expires ${_formatLoadDate(load['expires_at'])}',
+                          '${appText('Expires ')}${_formatLoadDate(load['expires_at'])}',
                           style: const TextStyle(
                             fontSize: 11,
                             color: Colors.black54,
@@ -1297,13 +1297,13 @@ class _TraderProductsPageState extends State<TraderProductsPage> {
                               action == 'edit' ? _edit(load) : _delete(load),
                           itemBuilder: (_) => [
                             if (load['status'] == 'Available')
-                              const PopupMenuItem(
+                              PopupMenuItem(
                                 value: 'edit',
-                                child: Text('Edit'),
+                                child: Text(appText('Edit')),
                               ),
-                            const PopupMenuItem(
+                            PopupMenuItem(
                               value: 'delete',
-                              child: Text('Delete'),
+                              child: Text(appText('Delete')),
                             ),
                           ],
                           enabled: true,

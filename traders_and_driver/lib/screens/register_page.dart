@@ -105,21 +105,21 @@ class _RegisterPageState extends State<RegisterPage> {
       _registrationErrorType(error, isOtpVerification: isOtpVerification)
     ) {
       case _RegistrationErrorType.rateLimited:
-        return 'Too many attempts. Please wait a moment and try again.';
+        return appText('Too many attempts. Please wait a moment and try again.');
       case _RegistrationErrorType.invalidOtp:
-        return 'That verification code is invalid or has expired.';
+        return appText('That verification code is invalid or has expired.');
       case _RegistrationErrorType.network:
-        return 'Connection problem. Please check your internet and try again.';
+        return appText('Connection problem. Please check your internet and try again.');
       case _RegistrationErrorType.unknown:
         if (error is AuthException &&
             (error.message.toLowerCase().contains('already registered') ||
                 error.message.toLowerCase().contains('already exists') ||
                 error.message.toLowerCase().contains('user already'))) {
-          return 'This phone number is already registered. Please log in.';
+          return appText('This phone number is already registered. Please log in.');
         }
         return isOtpVerification
-            ? 'We could not complete your registration. Please try again.'
-            : 'We could not send a verification code. Please try again.';
+            ? appText('We could not complete your registration. Please try again.')
+            : appText('We could not send a verification code. Please try again.');
     }
   }
 
@@ -132,7 +132,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
     if (_fullNameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter your full name')),
+        SnackBar(content: Text(appText('Please enter your full name'))),
       );
       return;
     }
@@ -140,14 +140,14 @@ class _RegisterPageState extends State<RegisterPage> {
     if (_selectedUserType == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Please select user type')));
+      ).showSnackBar(SnackBar(content: Text(appText('Please select user type'))));
       return;
     }
 
     final phone = _phoneController.text.trim();
     if (phone.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter phone number')),
+        SnackBar(content: Text(appText('Please enter phone number'))),
       );
       return;
     }
@@ -155,9 +155,9 @@ class _RegisterPageState extends State<RegisterPage> {
     final password = _passwordController.text;
     if (password.isEmpty || !_isStrongPassword(password)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
-            'Password must be at least 6 characters and include uppercase, lowercase, and a special character',
+            appText('Password must be at least 6 characters and include uppercase, lowercase, and a special character'),
           ),
         ),
       );
@@ -167,7 +167,7 @@ class _RegisterPageState extends State<RegisterPage> {
     if (password != _confirmPasswordController.text) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Passwords do not match')));
+      ).showSnackBar(SnackBar(content: Text(appText('Passwords do not match'))));
       return;
     }
 
@@ -201,7 +201,7 @@ class _RegisterPageState extends State<RegisterPage> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('OTP sent to $formattedPhone')));
+        ).showSnackBar(SnackBar(content: Text('${appText('OTP sent to ')}$formattedPhone')));
       }
     } catch (error) {
       setState(() => _isLoading = false);
@@ -222,7 +222,7 @@ class _RegisterPageState extends State<RegisterPage> {
     final otp = _otpController.text.trim();
     if (otp.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter the OTP code')),
+        SnackBar(content: Text(appText('Please enter the OTP code'))),
       );
       return;
     }
@@ -243,8 +243,8 @@ class _RegisterPageState extends State<RegisterPage> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Registration successful! Please login.'),
+            SnackBar(
+              content: Text(appText('Registration successful! Please login.')),
             ),
           );
           Navigator.pop(context); // back to login
@@ -448,7 +448,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                         validator: (v) {
                           if (v != _passwordController.text)
-                            return 'Passwords do not match';
+                            return appText('Passwords do not match');
                           return null;
                         },
                       ),
@@ -495,7 +495,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'We sent a verification code to $_currentPhoneNumber',
+                              '${appText('We sent a verification code to ')}$_currentPhoneNumber',
                               textAlign: TextAlign.center,
                               style: GoogleFonts.poppins(
                                 fontSize: 14,
@@ -507,7 +507,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       const SizedBox(height: 24),
 
-                      Text('Enter OTP', style: _labelStyle()),
+                      Text(appText('Enter OTP'), style: _labelStyle()),
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: _otpController,

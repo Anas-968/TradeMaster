@@ -34,17 +34,17 @@ class _AdminPageState extends State<AdminPage> {
         onTap: (index) => setState(() => _selectedIndex = index),
         selectedItemColor: const Color(0xFF1A237E),
         unselectedItemColor: Colors.grey,
-        items: const [
+        items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard),
-            label: 'Dashboard',
+            label: appText('Dashboard'),
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Users'),
+          BottomNavigationBarItem(icon: Icon(Icons.people), label: appText('Users')),
           BottomNavigationBarItem(
             icon: Icon(Icons.bar_chart),
-            label: 'Reports',
+            label: appText('Reports'),
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.support_agent), label: 'Support'),
+          BottomNavigationBarItem(icon: Icon(Icons.support_agent), label: appText('Support')),
         ],
       ),
     );
@@ -78,7 +78,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         actions: [
           const ThemeToggleButton(),
           IconButton(
-            tooltip: 'Refresh',
+            tooltip: appText('Refresh'),
             icon: const Icon(Icons.refresh),
             onPressed: () {
               setState(() {
@@ -111,7 +111,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Welcome, $displayName',
+                  '${appText('Welcome, ')}$displayName',
                   style: GoogleFonts.poppins(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -159,7 +159,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'Marketplace activity',
+                  appText('Marketplace activity'),
                   style: GoogleFonts.poppins(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -173,7 +173,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                         leading: const CircleAvatar(
                           child: Icon(Icons.payments_outlined),
                         ),
-                        title: const Text('Marketplace order value'),
+                        title: Text(appText('Marketplace order value')),
                         subtitle: Text('${metrics['orders']} total loads'),
                         trailing: Text(
                           '${_formatOmr(metrics['orderTotal'])} OMR',
@@ -184,7 +184,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       const Divider(height: 1),
                       ListTile(
                         leading: const Icon(Icons.local_shipping_outlined),
-                        title: const Text('Active loads'),
+                        title: Text(appText('Active loads')),
                         trailing: Text(
                           '${metrics['activeLoads']}',
                           style: const TextStyle(fontWeight: FontWeight.bold),
@@ -193,7 +193,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       ),
                       ListTile(
                         leading: const Icon(Icons.check_circle_outline),
-                        title: const Text('Delivered loads'),
+                        title: Text(appText('Delivered loads')),
                         trailing: Text(
                           '${metrics['deliveredLoads']}',
                           style: const TextStyle(fontWeight: FontWeight.bold),
@@ -202,7 +202,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       ),
                       ListTile(
                         leading: const Icon(Icons.pending_actions),
-                        title: const Text('Unassigned loads'),
+                        title: Text(appText('Unassigned loads')),
                         trailing: Text(
                           '${metrics['unassignedLoads']}',
                           style: const TextStyle(fontWeight: FontWeight.bold),
@@ -221,7 +221,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   Widget _logoutButton(BuildContext context) => IconButton(
-    tooltip: 'Logout',
+    tooltip: appText('Logout'),
     icon: const Icon(Icons.logout),
     onPressed: () async {
       final shouldLogout = await _confirmLogout(context);
@@ -234,7 +234,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   );
 
   Widget _resetPasswordButton(BuildContext context) => IconButton(
-    tooltip: 'Reset password',
+    tooltip: appText('Reset password'),
     icon: const Icon(Icons.lock_reset),
     onPressed: () => Navigator.pushNamed(context, '/reset-password'),
   );
@@ -242,16 +242,16 @@ class _AdminDashboardState extends State<AdminDashboard> {
   Future<bool?> _confirmLogout(BuildContext context) => showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(
-      title: const Text('Log out?'),
-      content: const Text('You will need to log in again to continue.'),
+      title: Text(appText('Log out?')),
+      content: Text(appText('You will need to log in again to continue.')),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(dialogContext, false),
-          child: const Text('Cancel'),
+          child: Text(appText('Cancel')),
         ),
         FilledButton(
           onPressed: () => Navigator.pop(dialogContext, true),
-          child: const Text('Log out'),
+          child: Text(appText('Log out')),
         ),
       ],
     ),
@@ -393,7 +393,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
     } catch (error) {
       if (mounted)
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not update user: $error')),
+          SnackBar(content: Text('${appText('Could not update user: ')}$error')),
         );
     }
   }
@@ -403,7 +403,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Manage Users',
+          appText('Manage Users'),
           style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
         ),
         backgroundColor: const Color(0xFF1A237E),
@@ -439,9 +439,9 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                 child: TextField(
                   controller: _searchController,
                   onChanged: (value) => setState(() => _query = value),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     prefixIcon: Icon(Icons.search),
-                    hintText: 'Search by name or phone',
+                    hintText: appText('Search by name or phone'),
                     border: OutlineInputBorder(),
                   ),
                 ),
@@ -466,7 +466,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
               ),
               Expanded(
                 child: users.isEmpty
-                    ? const Center(child: Text('No matching users.'))
+                    ? Center(child: Text(appText('No matching users.')))
                     : RefreshIndicator(
                         onRefresh: () async {
                           final usersFuture = _loadUsers();
@@ -584,7 +584,7 @@ class _AdminUserDialogState extends State<_AdminUserDialog> {
       if (mounted)
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Could not save user: $error')));
+        ).showSnackBar(SnackBar(content: Text('${appText('Could not save user: ')}$error')));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -592,7 +592,7 @@ class _AdminUserDialogState extends State<_AdminUserDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-    title: const Text('User details'),
+    title: Text(appText('User details')),
     content: SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -607,20 +607,20 @@ class _AdminUserDialogState extends State<_AdminUserDialog> {
           const SizedBox(height: 12),
           TextField(
             controller: _name,
-            decoration: const InputDecoration(labelText: 'Full name'),
+            decoration: InputDecoration(labelText: appText('Full name')),
           ),
           TextField(
             controller: _phone,
             keyboardType: TextInputType.phone,
-            decoration: const InputDecoration(labelText: 'Phone'),
+            decoration: InputDecoration(labelText: appText('Phone')),
           ),
           DropdownButtonFormField<String>(
             value: _type,
-            decoration: const InputDecoration(labelText: 'Account section'),
-            items: const [
-              DropdownMenuItem(value: 'Trader', child: Text('Trader')),
-              DropdownMenuItem(value: 'Driver', child: Text('Driver')),
-              DropdownMenuItem(value: 'Admin', child: Text('Admin')),
+            decoration: InputDecoration(labelText: appText('Account section')),
+            items: [
+              DropdownMenuItem(value: 'Trader', child: Text(appText('Trader'))),
+              DropdownMenuItem(value: 'Driver', child: Text(appText('Driver'))),
+              DropdownMenuItem(value: 'Admin', child: Text(appText('Admin'))),
             ],
             onChanged:
                 widget.user['id'] ==
@@ -637,7 +637,7 @@ class _AdminUserDialogState extends State<_AdminUserDialog> {
               if (snapshot.connectionState == ConnectionState.waiting)
                 return const LinearProgressIndicator();
               if (snapshot.hasError)
-                return Text('Order history unavailable: ${snapshot.error}');
+                return Text('${appText('Order history unavailable: ')}${snapshot.error}');
               final orders = snapshot.data ?? [];
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -660,7 +660,7 @@ class _AdminUserDialogState extends State<_AdminUserDialog> {
     actions: [
       TextButton(
         onPressed: _saving ? null : () => Navigator.pop(context),
-        child: const Text('Close'),
+        child: Text(appText('Close')),
       ),
       FilledButton(
         onPressed: _saving ? null : _save,
@@ -714,13 +714,13 @@ Future<List<Map<String, dynamic>>> _loadOrdersWithProfiles() async {
 }
 
 String _contactName(dynamic profile) {
-  if (profile is! Map) return 'Unknown';
+  if (profile is! Map) return appText('Unknown');
   final name = profile['full_name']?.toString().trim() ?? '';
   return name.isEmpty ? 'Unnamed user' : name;
 }
 
 String _contactPhone(dynamic profile) {
-  if (profile is! Map) return 'No phone number';
+  if (profile is! Map) return appText('No phone number');
   final phone = profile['phone']?.toString().trim() ?? '';
   return phone.isEmpty ? 'No phone number' : phone;
 }
@@ -730,7 +730,7 @@ class AdminOrdersPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('Marketplace orders'),
+      title: Text(appText('Marketplace orders')),
       backgroundColor: const Color(0xFF1A237E),
       foregroundColor: Colors.white,
     ),
@@ -741,7 +741,7 @@ class AdminOrdersPage extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         if (snapshot.hasError)
           return Center(
-            child: Text('Could not load orders: ${snapshot.error}'),
+            child: Text('${appText('Could not load orders: ')}${snapshot.error}'),
           );
         final orders = snapshot.data ?? [];
         final total = orders.fold<num>(
@@ -754,7 +754,7 @@ class AdminOrdersPage extends StatelessWidget {
               margin: const EdgeInsets.all(12),
               child: ListTile(
                 title: Text('${orders.length} total orders'),
-                subtitle: const Text('Combined order value'),
+                subtitle: Text(appText('Combined order value')),
                 trailing: Text(
                   '${_formatOmr(total)} OMR',
                   style: const TextStyle(fontWeight: FontWeight.bold),
@@ -783,7 +783,7 @@ class AdminOrdersPage extends StatelessWidget {
                             '${order['status']} | ${order['pickup_location']} to ${order['delivery_location']}',
                           ),
                           Text(
-                            'Trader: ${_contactName(order['trader_profile'])} | Phone: ${_contactPhone(order['trader_profile'])}',
+                            '${appText('Trader: ')}${_contactName(order['trader_profile'])} | Phone: ${_contactPhone(order['trader_profile'])}',
                           ),
                           Text(
                             order['driver_id'] == null
@@ -831,7 +831,7 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
       title: Text(
-        'Reports',
+        appText('Reports'),
         style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
       ),
       backgroundColor: const Color(0xFF1A237E),
@@ -839,7 +839,7 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
       automaticallyImplyLeading: false,
       actions: [
         IconButton(
-          tooltip: 'Refresh',
+          tooltip: appText('Refresh'),
           icon: const Icon(Icons.refresh),
           onPressed: _refresh,
         ),
@@ -862,7 +862,7 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                     'Could not load driver reports. Apply supabase/schema.sql and confirm administrator access.\n\n${snapshot.error}',
                   ),
                   const SizedBox(height: 12),
-                  FilledButton(onPressed: _refresh, child: const Text('Retry')),
+                  FilledButton(onPressed: _refresh, child: Text(appText('Retry'))),
                 ],
               ),
             ),
@@ -886,15 +886,15 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
             padding: const EdgeInsets.all(16),
             children: [
               Text(
-                'Driver activity',
+                appText('Driver activity'),
                 style: GoogleFonts.poppins(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 4),
-              const Text(
-                'Load history and performance for every registered driver.',
+              Text(
+                appText('Load history and performance for every registered driver.'),
               ),
               const SizedBox(height: 16),
               Card(
@@ -904,7 +904,7 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Account mix',
+                        appText('Account mix'),
                         style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: 8),
@@ -945,10 +945,10 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                           ),
                         )
                       else
-                        const Padding(
+                        Padding(
                           padding: EdgeInsets.symmetric(vertical: 24),
                           child: Center(
-                            child: Text('No traders or drivers yet.'),
+                            child: Text(appText('No traders or drivers yet.')),
                           ),
                         ),
                       const SizedBox(height: 8),
@@ -956,11 +956,11 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                         spacing: 16,
                         runSpacing: 8,
                         children: [
-                          Text('Traders: ${data.traderCount}'),
-                          Text('Drivers: ${drivers.length}'),
-                          Text('Assigned loads: ${allLoads.length}'),
-                          Text('Delivered: $delivered'),
-                          Text('Load value: ${_formatOmr(totalValue)} OMR'),
+                          Text('${appText('Traders: ')}${data.traderCount}'),
+                          Text('${appText('Drivers: ')}${drivers.length}'),
+                          Text('${appText('Assigned loads: ')}${allLoads.length}'),
+                          Text('${appText('Delivered: ')}$delivered'),
+                          Text('${appText('Load value: ')}${_formatOmr(totalValue)} OMR'),
                         ],
                       ),
                     ],
@@ -969,10 +969,10 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
               ),
               const SizedBox(height: 12),
               if (drivers.isEmpty)
-                const Card(
+                Card(
                   child: Padding(
                     padding: EdgeInsets.all(20),
-                    child: Text('No drivers registered yet.'),
+                    child: Text(appText('No drivers registered yet.')),
                   ),
                 ),
               for (final driver in drivers) _DriverReportCard(driver: driver),
@@ -1075,7 +1075,7 @@ class _DriverReportCard extends StatelessWidget {
         ),
         children: [
           if (loads.isEmpty)
-            const ListTile(title: Text('No assigned loads yet')),
+            ListTile(title: Text(appText('No assigned loads yet'))),
           for (final load in loads)
             ListTile(
               dense: true,
@@ -1094,7 +1094,7 @@ class _DriverReportCard extends StatelessWidget {
               child: TextButton.icon(
                 onPressed: () => _downloadDriverReport(context, driver),
                 icon: const Icon(Icons.picture_as_pdf_outlined),
-                label: const Text('Print / Download PDF'),
+                label: Text(appText('Print / Download PDF')),
               ),
             ),
           ),
@@ -1106,7 +1106,7 @@ class _DriverReportCard extends StatelessWidget {
 
 String _reportDate(dynamic value) {
   final date = DateTime.tryParse('$value')?.toLocal();
-  if (date == null) return 'Unknown';
+  if (date == null) return appText('Unknown');
   return '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 }
 
@@ -1187,7 +1187,7 @@ Future<void> _downloadDriverReport(
     );
   } catch (error) {
     messenger.showSnackBar(
-      SnackBar(content: Text('Could not create PDF: $error')),
+      SnackBar(content: Text('${appText('Could not create PDF: ')}$error')),
     );
   }
 }

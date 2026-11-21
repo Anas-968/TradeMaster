@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'reset_password_page.dart';
+import '../language_controller.dart';
 
 class ForgotPasswordFlowPage extends StatefulWidget {
   const ForgotPasswordFlowPage({super.key});
@@ -37,24 +38,24 @@ class _ForgotPasswordFlowPageState extends State<ForgotPasswordFlowPage> {
     if (error is AuthException) {
       final message = error.message.toLowerCase();
       if (error.statusCode == '429' || message.contains('rate limit')) {
-        return 'Too many attempts. Please wait a moment and try again.';
+        return appText('Too many attempts. Please wait a moment and try again.');
       }
       if (isOtpStep &&
           (message.contains('token') ||
               message.contains('otp') ||
               message.contains('expired'))) {
-        return 'That verification code is invalid or has expired.';
+        return appText('That verification code is invalid or has expired.');
       }
     }
     return isOtpStep
-        ? 'We could not reset your password. Please try again.'
-        : 'We could not send a code. Check the phone number and try again.';
+        ? appText('We could not reset your password. Please try again.')
+        : appText('We could not send a code. Check the phone number and try again.');
   }
 
   Future<void> _sendOtp() async {
     if (_phoneController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter phone number')),
+        SnackBar(content: Text(appText('Please enter phone number'))),
       );
       return;
     }
@@ -69,7 +70,7 @@ class _ForgotPasswordFlowPageState extends State<ForgotPasswordFlowPage> {
       });
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('OTP sent to $formatted')));
+      ).showSnackBar(SnackBar(content: Text('${appText('OTP sent to ')}$formatted')));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -84,7 +85,7 @@ class _ForgotPasswordFlowPageState extends State<ForgotPasswordFlowPage> {
     if (_otpController.text.trim().isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Please enter OTP')));
+      ).showSnackBar(SnackBar(content: Text(appText('Please enter OTP'))));
       return;
     }
     setState(() => _isLoading = true);
@@ -103,7 +104,7 @@ class _ForgotPasswordFlowPageState extends State<ForgotPasswordFlowPage> {
       } else {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Verification failed')));
+        ).showSnackBar(SnackBar(content: Text(appText('Verification failed'))));
       }
     } catch (e) {
       if (!mounted) return;
@@ -127,7 +128,7 @@ class _ForgotPasswordFlowPageState extends State<ForgotPasswordFlowPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Forgot Password',
+          appText('Forgot Password'),
           style: GoogleFonts.poppins(
             color: const Color(0xFF1A237E),
             fontWeight: FontWeight.bold,
@@ -148,7 +149,7 @@ class _ForgotPasswordFlowPageState extends State<ForgotPasswordFlowPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Phone Number',
+          appText('Phone Number'),
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.w600,
             fontSize: 14,
@@ -164,7 +165,7 @@ class _ForgotPasswordFlowPageState extends State<ForgotPasswordFlowPage> {
               Icons.phone_outlined,
               color: Color(0xFF1A237E),
             ),
-            hintText: 'Enter your phone',
+            hintText: appText('Enter your phone'),
             filled: true,
             fillColor: Colors.grey[50],
             border: OutlineInputBorder(
@@ -188,7 +189,7 @@ class _ForgotPasswordFlowPageState extends State<ForgotPasswordFlowPage> {
             child: _isLoading
                 ? const CircularProgressIndicator(color: Colors.white)
                 : Text(
-                    'Send OTP',
+                    appText('Send OTP'),
                     style: GoogleFonts.poppins(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -205,7 +206,7 @@ class _ForgotPasswordFlowPageState extends State<ForgotPasswordFlowPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Enter OTP',
+          appText('Enter OTP'),
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.w600,
             fontSize: 14,
@@ -242,7 +243,7 @@ class _ForgotPasswordFlowPageState extends State<ForgotPasswordFlowPage> {
             child: _isLoading
                 ? const CircularProgressIndicator(color: Colors.white)
                 : Text(
-                    'Verify OTP',
+                    appText('Verify OTP'),
                     style: GoogleFonts.poppins(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,

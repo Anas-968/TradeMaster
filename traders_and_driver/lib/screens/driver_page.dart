@@ -41,17 +41,17 @@ class _DriverPageState extends State<DriverPage> {
         onTap: (index) => setState(() => _selectedIndex = index),
         selectedItemColor: primaryColor,
         unselectedItemColor: Colors.grey,
-        items: const [
+        items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard),
-            label: 'Dashboard',
+            label: appText('Dashboard'),
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.search),
-            label: 'Find Loads',
+            label: appText('Find Loads'),
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.work), label: 'My Jobs'),
-          BottomNavigationBarItem(icon: Icon(Icons.auto_awesome), label: 'AI Help'),
+          BottomNavigationBarItem(icon: Icon(Icons.work), label: appText('My Jobs')),
+          BottomNavigationBarItem(icon: Icon(Icons.auto_awesome), label: appText('AI Help')),
         ],
       ),
     );
@@ -210,29 +210,29 @@ class DriverDashboard extends StatelessWidget {
         actions: [
           const ThemeToggleButton(),
           IconButton(
-            tooltip: 'Reset password',
+            tooltip: appText('Reset password'),
             icon: const Icon(Icons.lock_reset),
             onPressed: () => Navigator.pushNamed(context, '/reset-password'),
           ),
           IconButton(
-            tooltip: 'Logout',
+            tooltip: appText('Logout'),
             icon: const Icon(Icons.logout),
             onPressed: () async {
               final shouldLogout = await showDialog<bool>(
                 context: context,
                 builder: (dialogContext) => AlertDialog(
-                  title: const Text('Log out?'),
-                  content: const Text(
-                    'You will need to log in again to continue.',
+                  title: Text(appText('Log out?')),
+                  content: Text(
+                    appText('You will need to log in again to continue.'),
                   ),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(dialogContext, false),
-                      child: const Text('Cancel'),
+                      child: Text(appText('Cancel')),
                     ),
                     FilledButton(
                       onPressed: () => Navigator.pop(dialogContext, true),
-                      child: const Text('Log out'),
+                      child: Text(appText('Log out')),
                     ),
                   ],
                 ),
@@ -261,7 +261,7 @@ class DriverDashboard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Hello, $displayName',
+                    '${appText('Hello, ')}$displayName',
                     style: GoogleFonts.poppins(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -270,7 +270,7 @@ class DriverDashboard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Find loads and start earning',
+                    appText('Find loads and start earning'),
                     style: GoogleFonts.poppins(
                       fontSize: 14,
                       color: Colors.grey[600],
@@ -301,7 +301,7 @@ class DriverDashboard extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'Recent Bids',
+                    appText('Recent Bids'),
                     style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -324,7 +324,7 @@ class DriverDashboard extends StatelessWidget {
                               color: primaryColor,
                             ),
                             title: Text(
-                              'Load #${load.id}',
+                              '${appText('Load #')}${load.id}',
                               style: GoogleFonts.poppins(
                                 fontWeight: FontWeight.w500,
                               ),
@@ -369,7 +369,7 @@ class DriverDashboard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Jobs Overview',
+              appText('Jobs Overview'),
               style: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -378,7 +378,7 @@ class DriverDashboard extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              'Available loads compared with accepted jobs',
+              appText('Available loads compared with accepted jobs'),
               style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600]),
             ),
             const SizedBox(height: 18),
@@ -429,18 +429,18 @@ class DriverDashboard extends StatelessWidget {
                       children: [
                         _chartLegend(
                           color: Colors.blue,
-                          label: 'Available Loads',
+                          label: appText('Available Loads'),
                           value: '$availableLoads',
                         ),
                         const SizedBox(height: 18),
                         _chartLegend(
                           color: Colors.green,
-                          label: 'Accepted Jobs',
+                          label: appText('Accepted Jobs'),
                           value: '$acceptedJobs',
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'Total: $total jobs',
+                          '${appText('Total: ')}$total jobs',
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                             color: Colors.grey[600],
@@ -543,7 +543,7 @@ Future<void> showLoadDetails(BuildContext context, DriverLoad load) async {
       builder: (dialogContext, setDialogState) {
         final accepted = load.status == 'Accepted' || load.status == 'In transit';
         return AlertDialog(
-          title: Text('Load #${load.id} details'),
+          title: Text('${appText('Load #')}${load.id} details'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -556,12 +556,12 @@ Future<void> showLoadDetails(BuildContext context, DriverLoad load) async {
                 _detailRow('Weight', load.weight),
                 _detailRow('Price', '${load.priceOmr} OMR'),
                 _detailRow('Payment method', load.paymentMethod),
-                const Text('Project demo only. No payment is processed.', style: TextStyle(color: Colors.black54, fontSize: 12)),
+                Text(appText('Project demo only. No payment is processed.'), style: TextStyle(color: Colors.black54, fontSize: 12)),
                 _detailRow('Priority', load.urgent ? 'Urgent' : 'Normal'),
                 _detailRow('Status', load.status),
                 const SizedBox(height: 8),
-                const Text(
-                  'Confirm the pickup location and destination before accepting.',
+                Text(
+                  appText('Confirm the pickup location and destination before accepting.'),
                 ),
               ],
             ),
@@ -569,7 +569,7 @@ Future<void> showLoadDetails(BuildContext context, DriverLoad load) async {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Close'),
+              child: Text(appText('Close')),
             ),
             if (!accepted)
               FilledButton.icon(
@@ -581,7 +581,7 @@ Future<void> showLoadDetails(BuildContext context, DriverLoad load) async {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            'Load #${load.id} accepted successfully.',
+                            '${appText('Load #')}${load.id} accepted successfully.',
                           ),
                         ),
                       );
@@ -656,11 +656,11 @@ class AvailableLoadsPage extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           if (store.error != null && store.loads.isEmpty)
             return Center(
-              child: Text('Could not load available jobs. ${store.error}'),
+              child: Text('${appText('Could not load available jobs. ')}${store.error}'),
             );
           if (loads.isEmpty) {
-            return const Center(
-              child: Text('There are no available loads right now.'),
+            return Center(
+              child: Text(appText('There are no available loads right now.')),
             );
           }
 
@@ -688,18 +688,18 @@ class AvailableLoadsPage extends StatelessWidget {
                             ),
                           ),
                           if (load.urgent)
-                            const Chip(
-                              label: Text('Urgent'),
+                            Chip(
+                              label: Text(appText('Urgent')),
                               backgroundColor: Color(0xFFC8E6C9),
                             ),
                         ],
                       ),
                       const SizedBox(height: 8),
-                      Text('From: ${load.from}  →  To: ${load.to}'),
+                      Text('${appText('From: ')}${load.from}  →  To: ${load.to}'),
                       const SizedBox(height: 8),
-                      Text('Weight: ${load.weight}'),
-                      Text('Price: ${load.priceOmr} OMR'),
-                      Text('Payment method: ${load.paymentMethod} (demo only)'),
+                      Text('${appText('Weight: ')}${load.weight}'),
+                      Text('${appText('Price: ')}${load.priceOmr} OMR'),
+                      Text('${appText('Payment method: ')}${load.paymentMethod} (demo only)'),
                       const SizedBox(height: 8),
                       const SizedBox(height: 12),
                       Row(
@@ -743,11 +743,11 @@ class DriverJobsPage extends StatelessWidget {
         length: 2,
         child: Scaffold(
           appBar: AppBar(
-            title: Text('My Jobs', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+            title: Text(appText('My Jobs'), style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
             backgroundColor: primaryColor,
             foregroundColor: Colors.white,
             automaticallyImplyLeading: false,
-            bottom: const TabBar(tabs: [Tab(text: 'Active'), Tab(text: 'Delivered')]),
+            bottom: TabBar(tabs: [Tab(text: appText('Active')), Tab(text: appText('Delivered'))]),
           ),
           body: AnimatedBuilder(
             animation: DriverLoadStore.instance,
@@ -767,7 +767,7 @@ class DriverJobsPage extends StatelessWidget {
 
   Widget _activeJobs(BuildContext context, DriverLoadStore store) {
     final jobs = store.acceptedLoads;
-    if (jobs.isEmpty) return const Center(child: Text('No active jobs.'));
+    if (jobs.isEmpty) return Center(child: Text(appText('No active jobs.')));
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: jobs.length,
@@ -785,15 +785,15 @@ class DriverJobsPage extends StatelessWidget {
                 Chip(label: Text(load.status)),
               ]),
               const SizedBox(height: 8),
-              Text('Load #${load.id}  •  ${load.weight}  •  ${load.priceOmr} OMR'),
-              Text('Payment method: ${load.paymentMethod} (demo only)'),
+              Text('${appText('Load #')}${load.id}  •  ${load.weight}  •  ${load.priceOmr} OMR'),
+              Text('${appText('Payment method: ')}${load.paymentMethod} (demo only)'),
               const SizedBox(height: 6),
               Text('${load.from}  →  ${load.to}'),
               const SizedBox(height: 14),
               SizedBox(width: double.infinity, child: FilledButton.icon(
                 onPressed: () => _confirmDelivered(context, store, load),
                 icon: const Icon(Icons.check_circle_outline),
-                label: const Text('Confirm delivery'),
+                label: Text(appText('Confirm delivery')),
               )),
             ]),
           ),
@@ -804,7 +804,7 @@ class DriverJobsPage extends StatelessWidget {
 
   Widget _deliveredJobs(DriverLoadStore store) {
     final jobs = store.deliveredLoads;
-    if (jobs.isEmpty) return const Center(child: Text('Delivered orders will appear here.'));
+    if (jobs.isEmpty) return Center(child: Text(appText('Delivered orders will appear here.')));
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: jobs.length,
@@ -852,14 +852,14 @@ class DriverJobsPage extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Confirm delivery?'),
+        title: Text(appText('Confirm delivery?')),
         content: Text('Confirm that "${load.product}" (load #${load.id}) has reached ${load.to}.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Not yet')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(appText('Not yet'))),
           FilledButton.icon(
             onPressed: () => Navigator.pop(dialogContext, true),
             icon: const Icon(Icons.check),
-            label: const Text('Confirm delivered'),
+            label: Text(appText('Confirm delivered')),
           ),
         ],
       ),
@@ -870,12 +870,12 @@ class DriverJobsPage extends StatelessWidget {
       if (context.mounted) {
         DefaultTabController.of(context).animateTo(1);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Delivery confirmed. Receipt added to Delivered.')),
+          SnackBar(content: Text(appText('Delivery confirmed. Receipt added to Delivered.'))),
         );
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not confirm delivery: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${appText('Could not confirm delivery: ')}$e')));
       }
     }
   }

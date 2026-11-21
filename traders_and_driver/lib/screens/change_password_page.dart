@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../language_controller.dart';
 
 class ChangePasswordPage extends StatefulWidget {
   const ChangePasswordPage({super.key});
@@ -52,8 +53,8 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
 
     if (!_isPasswordStrong) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Password must meet all strength requirements.'),
+        SnackBar(
+          content: Text(appText('Password must meet all strength requirements.')),
           backgroundColor: Colors.orange,
         ),
       );
@@ -85,8 +86,8 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Password changed successfully!'),
+        SnackBar(
+          content: Text(appText('Password changed successfully!')),
           backgroundColor: Colors.green,
         ),
       );
@@ -209,7 +210,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Change Password',
+          appText('Change Password'),
           style: GoogleFonts.poppins(
             color: const Color(0xFF1A237E),
             fontWeight: FontWeight.bold,
@@ -247,7 +248,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
             ),
             const SizedBox(height: 24),
             Text(
-              'Password Changed!',
+              appText('Password Changed!'),
               style: GoogleFonts.poppins(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -256,13 +257,13 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Your password has been updated successfully.',
+              appText('Your password has been updated successfully.'),
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
             ),
             const SizedBox(height: 8),
             Text(
-              'Redirecting you back...',
+              appText('Redirecting you back...'),
               style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey[400]),
             ),
           ],
@@ -296,7 +297,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  'Update Your Password',
+                  appText('Update Your Password'),
                   style: GoogleFonts.poppins(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
@@ -305,7 +306,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Phone Number',
+                  appText('Phone Number'),
                   style: GoogleFonts.poppins(
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
@@ -341,7 +342,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
 
                 const SizedBox(height: 24),
                 Text(
-                  'Enter your current password, then choose a new one.',
+                  appText('Enter your current password, then choose a new one.'),
                   textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(
                     fontSize: 13,
@@ -355,15 +356,15 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
 
           // Current Password
           _buildPasswordField(
-            label: 'Current Password',
+            label: appText('Current Password'),
             controller: _currentPasswordController,
             obscureText: _obscureCurrent,
             onToggleVisibility: () =>
                 setState(() => _obscureCurrent = !_obscureCurrent),
-            hintText: 'Enter your current password',
+            hintText: appText('Enter your current password'),
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'Please enter your current password';
+                return appText('Please enter your current password');
               }
               return null;
             },
@@ -372,19 +373,19 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
 
           // New Password
           _buildPasswordField(
-            label: 'New Password',
+            label: appText('New Password'),
             controller: _newPasswordController,
             obscureText: _obscureNew,
             onToggleVisibility: () =>
                 setState(() => _obscureNew = !_obscureNew),
-            hintText: 'Enter your new password',
+            hintText: appText('Enter your new password'),
             onChanged: _evaluatePasswordStrength,
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'Please enter a new password';
+                return appText('Please enter a new password');
               }
               if (value == _currentPasswordController.text) {
-                return 'New password must differ from current password';
+                return appText('New password must differ from current password');
               }
               return null;
             },
@@ -403,7 +404,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Password requirements',
+                  appText('Password requirements'),
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -434,18 +435,18 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
 
           // Confirm New Password
           _buildPasswordField(
-            label: 'Confirm New Password',
+            label: appText('Confirm New Password'),
             controller: _confirmPasswordController,
             obscureText: _obscureConfirm,
             onToggleVisibility: () =>
                 setState(() => _obscureConfirm = !_obscureConfirm),
-            hintText: 'Re-enter your new password',
+            hintText: appText('Re-enter your new password'),
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'Please confirm your new password';
+                return appText('Please confirm your new password');
               }
               if (value != _newPasswordController.text) {
-                return 'Passwords do not match';
+                return appText('Passwords do not match');
               }
               return null;
             },
@@ -477,7 +478,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                       ),
                     )
                   : Text(
-                      'Change Password',
+                      appText('Change Password'),
                       style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -501,7 +502,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                 ),
               ),
               child: Text(
-                'Cancel',
+                appText('Cancel'),
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,

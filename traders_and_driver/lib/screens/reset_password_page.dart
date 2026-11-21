@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../language_controller.dart';
 
 class ResetPasswordPage extends StatefulWidget {
   const ResetPasswordPage({super.key, this.returnToLoginOnBack = true});
@@ -45,9 +46,9 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     final password = _newPasswordController.text;
     if (!_isStrongPassword(password)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
-            'Password must be at least 6 characters and include uppercase, lowercase, and a special character.',
+            appText('Password must be at least 6 characters and include uppercase, lowercase, and a special character.'),
           ),
         ),
       );
@@ -56,7 +57,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     if (password != _confirmController.text) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Passwords do not match')));
+      ).showSnackBar(SnackBar(content: Text(appText('Passwords do not match'))));
       return;
     }
 
@@ -68,9 +69,9 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
       await Supabase.instance.client.auth.signOut();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
-            'Password updated. Please login with your new password.',
+            appText('Password updated. Please login with your new password.'),
           ),
         ),
       );
@@ -83,8 +84,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('We could not update your password. Please try again.'),
+        SnackBar(
+          content: Text(appText('We could not update your password. Please try again.')),
         ),
       );
     } finally {
@@ -101,7 +102,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF1A237E)),
-          tooltip: 'Back to login',
+          tooltip: appText('Back to login'),
           onPressed: _isLoading ? null : _goBackToLogin,
         ),
         title: Text(
@@ -119,7 +120,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Choose a new password',
+                appText('Choose a new password'),
                 style: GoogleFonts.poppins(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -135,20 +136,20 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
               ),
               const SizedBox(height: 32),
               _passwordField(
-                label: 'New Password',
+                label: appText('New Password'),
                 controller: _newPasswordController,
                 obscureText: _obscureNew,
-                hintText: 'Enter new password',
+                hintText: appText('Enter new password'),
                 onToggle: () => setState(() => _obscureNew = !_obscureNew),
                 helperText:
-                    '6+ characters, uppercase, lowercase, and special character',
+                    appText('6+ characters, uppercase, lowercase, and special character'),
               ),
               const SizedBox(height: 20),
               _passwordField(
-                label: 'Confirm Password',
+                label: appText('Confirm Password'),
                 controller: _confirmController,
                 obscureText: _obscureConfirm,
-                hintText: 'Confirm new password',
+                hintText: appText('Confirm new password'),
                 onToggle: () =>
                     setState(() => _obscureConfirm = !_obscureConfirm),
               ),
@@ -174,7 +175,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                           ),
                         )
                       : Text(
-                          'Reset Password',
+                          appText('Reset Password'),
                           style: GoogleFonts.poppins(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,

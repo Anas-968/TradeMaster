@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../language_controller.dart';
 
 class SupportChatPage extends StatefulWidget {
   const SupportChatPage({super.key});
@@ -87,11 +88,11 @@ class _SupportChatPageState extends State<SupportChatPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete support chat?'),
-        content: const Text('This permanently deletes the conversation and all its messages.'),
+        title: Text(appText('Delete support chat?')),
+        content: Text(appText('This permanently deletes the conversation and all its messages.')),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Delete')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(appText('Cancel'))),
+          TextButton(onPressed: () => Navigator.pop(dialogContext, true), child: Text(appText('Delete'))),
         ],
       ),
     );
@@ -101,7 +102,7 @@ class _SupportChatPageState extends State<SupportChatPage> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not delete this support chat.')),
+          SnackBar(content: Text(appText('Could not delete this support chat.'))),
         );
       }
     }
@@ -121,8 +122,8 @@ class _SupportChatPageState extends State<SupportChatPage> {
       if (mounted) {
         _input.text = text;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Message could not be sent. Try again.'),
+          SnackBar(
+            content: Text(appText('Message could not be sent. Try again.')),
           ),
         );
       }
@@ -143,7 +144,7 @@ class _SupportChatPageState extends State<SupportChatPage> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     if (_error != null)
       return Scaffold(
-        appBar: AppBar(title: const Text('Live Support')),
+        appBar: AppBar(title: Text(appText('Live Support'))),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -157,7 +158,7 @@ class _SupportChatPageState extends State<SupportChatPage> {
 
   Widget _inbox() => Scaffold(
     appBar: AppBar(
-      title: const Text('Support Inbox'),
+      title: Text(appText('Support Inbox')),
       automaticallyImplyLeading: false,
     ),
 
@@ -168,24 +169,24 @@ class _SupportChatPageState extends State<SupportChatPage> {
           .order('updated_at', ascending: false),
       builder: (context, snapshot) {
         if (snapshot.hasError)
-          return const Center(child: Text('Could not load support requests.'));
+          return Center(child: Text(appText('Could not load support requests.')));
         if (!snapshot.hasData)
           return const Center(child: CircularProgressIndicator());
         final rows = snapshot.data!;
         if (rows.isEmpty)
-          return const Center(child: Text('No support requests yet.'));
+          return Center(child: Text(appText('No support requests yet.')));
         return ListView(
           children: rows.map((row) {
             final uid = row['user_id'].toString();
             return ListTile(
               leading: const CircleAvatar(child: Icon(Icons.person_outline)),
-              title: Text('Customer ' + uid.substring(0, 8)),
-              subtitle: Text('Support request · ' + row['status'].toString()),
+              title: Text(appText('Customer ') + uid.substring(0, 8)),
+              subtitle: Text(appText('Support request · ') + row['status'].toString()),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
-                    tooltip: 'Delete support chat',
+                    tooltip: appText('Delete support chat'),
                     icon: const Icon(Icons.delete_outline),
                     onPressed: () => _deleteConversation(row['id'].toString()),
                   ),
@@ -206,10 +207,10 @@ class _SupportChatPageState extends State<SupportChatPage> {
           : null,
       title: Text(_admin ? 'Customer Support' : 'Live Support'),
       actions: !_admin
-          ? const [
+          ? [
               Padding(
                 padding: EdgeInsets.only(right: 14),
-                child: Center(child: Text('A support agent will reply here')),
+                child: Center(child: Text(appText('A support agent will reply here'))),
               ),
             ]
           : null,
@@ -225,13 +226,13 @@ class _SupportChatPageState extends State<SupportChatPage> {
                 .order('created_at', ascending: true),
             builder: (context, snapshot) {
               if (snapshot.hasError)
-                return const Center(child: Text('Could not load messages.'));
+                return Center(child: Text(appText('Could not load messages.')));
               if (!snapshot.hasData)
                 return const Center(child: CircularProgressIndicator());
               final messages = snapshot.data!;
               if (messages.isEmpty)
-                return const Center(
-                  child: Text('Send a message to reach our support team.'),
+                return Center(
+                  child: Text(appText('Send a message to reach our support team.')),
                 );
               return ListView.builder(
                 padding: const EdgeInsets.all(16),
@@ -281,8 +282,8 @@ class _SupportChatPageState extends State<SupportChatPage> {
                     minLines: 1,
                     maxLines: 4,
                     maxLength: 4000,
-                    decoration: const InputDecoration(
-                      hintText: 'Message support',
+                    decoration: InputDecoration(
+                      hintText: appText('Message support'),
                       border: OutlineInputBorder(),
                       counterText: '',
                     ),
@@ -291,7 +292,7 @@ class _SupportChatPageState extends State<SupportChatPage> {
                 ),
                 const SizedBox(width: 8),
                 IconButton.filled(
-                  tooltip: 'Send message',
+                  tooltip: appText('Send message'),
                   onPressed: _sending ? null : _send,
                   icon: _sending
                       ? const SizedBox(
