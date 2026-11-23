@@ -187,7 +187,8 @@ class _RegisterPageState extends State<RegisterPage> {
           'user_type': _selectedUserType,
         },
       );
-      if (response.user == null) {
+      if (response.user == null ||
+          (response.user!.identities?.isEmpty ?? false)) {
         throw const AuthException(
           'This phone number may already be registered. Please log in.',
         );
@@ -204,17 +205,60 @@ class _RegisterPageState extends State<RegisterPage> {
         ).showSnackBar(SnackBar(content: Text('${appText('OTP sent to ')}$formattedPhone')));
       }
     } catch (error) {
+      if (!mounted) return;
       setState(() => _isLoading = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              _registrationErrorMessage(error, isOtpVerification: false),
-            ),
-          ),
-        );
+      if (_isAlreadyRegistered(error)) {
+        await _showAlreadyRegisteredDialog();
+        return;
       }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _registrationErrorMessage(error, isOtpVerification: false),
+          ),
+        ),
+      );
     }
+  }
+
+  bool _isAlreadyRegistered(Object error) {
+    if (error is! AuthException) return false;
+    final message = error.message.toLowerCase();
+    return message.contains('already') ||
+        message.contains('exists') ||
+        message.contains('registered');
+  }
+
+  Future<void> _showAlreadyRegisteredDialog() {
+    return showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        icon: const Icon(
+          Icons.info_outline,
+          color: Color(0xFF1A237E),
+          size: 40,
+        ),
+        title: Text(appText('Phone number already registered')),
+        content: Text(
+          appText(
+            'This phone number already has an account. Please log in instead, or use a different phone number.',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(appText('Use another number')),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              Navigator.pushReplacementNamed(context, '/login');
+            },
+            child: Text(appText('Go to Login')),
+          ),
+        ],
+      ),
+    );
   }
 
   // Step 2: Verify OTP and complete registration

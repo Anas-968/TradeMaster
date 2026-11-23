@@ -56,16 +56,17 @@ class TraderPage extends StatefulWidget {
 
 class _TraderPageState extends State<TraderPage> {
   int _selectedIndex = 0;
-  final List<Widget> _pages = [
-    const TraderDashboard(),
-    const AddProductPage(),
-    const TraderProductsPage(),
-    const AssistantChatPage(),
+  List<Widget> get _pages => [
+    TraderDashboard(),
+    AddProductPage(),
+    TraderProductsPage(),
+    AssistantChatPage(),
   ];
 
   @override
   void initState() {
     super.initState();
+    AppLanguageController.instance.addListener(_onLanguageChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) => _redirectAdmin());
   }
 
@@ -95,6 +96,16 @@ class _TraderPageState extends State<TraderPage> {
     } catch (error) {
       debugPrint('Could not verify role on TraderPage: $error');
     }
+  }
+
+  void _onLanguageChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    AppLanguageController.instance.removeListener(_onLanguageChanged);
+    super.dispose();
   }
 
   @override
@@ -818,7 +829,7 @@ class _AddProductPageState extends State<AddProductPage> {
                       .map(
                         (method) => DropdownMenuItem(
                           value: method,
-                          child: Text(method),
+                          child: Text(appText(method)),
                         ),
                       )
                       .toList(),
@@ -878,14 +889,14 @@ class _AddProductPageState extends State<AddProductPage> {
     maxLines: maxLines,
     validator: (value) {
       if (required && (value == null || value.trim().isEmpty))
-        return '${appText('Enter ')}$label';
+        return '${appText('Enter ')}${appText(label)}';
       if (number &&
           (double.tryParse(value ?? '') == null || double.parse(value!) < 0))
         return appText('Enter a valid amount');
       return null;
     },
     decoration: InputDecoration(
-      labelText: label,
+      labelText: appText(label),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
     ),
   );
@@ -897,17 +908,17 @@ class _AddProductPageState extends State<AddProductPage> {
   ) => DropdownButtonFormField<String>(
     value: value,
     decoration: InputDecoration(
-      labelText: label,
+      labelText: appText(label),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
     ),
     items: omanLocations
         .map(
           (location) =>
-              DropdownMenuItem(value: location, child: Text(location)),
+              DropdownMenuItem(value: location, child: Text(appText(location))),
         )
         .toList(),
     onChanged: onChanged,
-    validator: (value) => value == null ? 'Enter $label' : null,
+    validator: (value) => value == null ? '${appText('Enter ')}${appText(label)}' : null,
   );
 }
 
@@ -982,7 +993,7 @@ class _TraderProductsPageState extends State<TraderProductsPage> {
                       border: OutlineInputBorder(),
                     ),
                     items: omanLocations
-                        .map((v) => DropdownMenuItem(value: v, child: Text(v)))
+                        .map((v) => DropdownMenuItem(value: v, child: Text(appText(v))))
                         .toList(),
                     onChanged: (v) => setDialogState(() => pickup = v),
                   ),
@@ -996,7 +1007,7 @@ class _TraderProductsPageState extends State<TraderProductsPage> {
                       border: OutlineInputBorder(),
                     ),
                     items: omanLocations
-                        .map((v) => DropdownMenuItem(value: v, child: Text(v)))
+                        .map((v) => DropdownMenuItem(value: v, child: Text(appText(v))))
                         .toList(),
                     onChanged: (v) => setDialogState(() => delivery = v),
                   ),
@@ -1036,7 +1047,7 @@ class _TraderProductsPageState extends State<TraderProductsPage> {
                         .map(
                           (method) => DropdownMenuItem(
                             value: method,
-                            child: Text(method),
+                            child: Text(appText(method)),
                           ),
                         )
                         .toList(),

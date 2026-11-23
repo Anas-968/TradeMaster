@@ -21,15 +21,26 @@ class _DriverPageState extends State<DriverPage> {
   @override
   void initState() {
     super.initState();
+    AppLanguageController.instance.addListener(_onLanguageChanged);
     DriverLoadStore.instance.refresh();
   }
 
-  final List<Widget> _pages = const [
+  List<Widget> get _pages => [
     DriverDashboard(),
     AvailableLoadsPage(),
     DriverJobsPage(),
     AssistantChatPage(),
   ];
+
+  void _onLanguageChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    AppLanguageController.instance.removeListener(_onLanguageChanged);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

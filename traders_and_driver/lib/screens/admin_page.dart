@@ -17,12 +17,28 @@ class AdminPage extends StatefulWidget {
 
 class _AdminPageState extends State<AdminPage> {
   int _selectedIndex = 0;
-  final List<Widget> _pages = const [
+  List<Widget> get _pages => [
     AdminDashboard(),
     AdminUsersPage(),
     AdminReportsPage(),
     SupportChatPage(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    AppLanguageController.instance.addListener(_onLanguageChanged);
+  }
+
+  void _onLanguageChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    AppLanguageController.instance.removeListener(_onLanguageChanged);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,18 +55,12 @@ class _AdminPageState extends State<AdminPage> {
             icon: Icon(Icons.dashboard),
             label: appText('Dashboard'),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people),
-            label: appText('Users'),
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.people), label: appText('Users')),
           BottomNavigationBarItem(
             icon: Icon(Icons.bar_chart),
             label: appText('Reports'),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.support_agent),
-            label: appText('Support'),
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.support_agent), label: appText('Support')),
         ],
       ),
     );
@@ -306,11 +316,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   void _openUsers(BuildContext context, {String? type}) => Navigator.of(
     context,
-  ).push(
-    MaterialPageRoute(
-      builder: (_) => AdminUsersPage(initialType: type, showBackButton: true),
-    ),
-  );
+  ).push(MaterialPageRoute(builder: (_) => AdminUsersPage(initialType: type)));
 
   void _openOrders(BuildContext context) => Navigator.of(
     context,
@@ -355,13 +361,8 @@ Future<Map<String, dynamic>> _loadAdminMetrics() async {
 }
 
 class AdminUsersPage extends StatefulWidget {
-  const AdminUsersPage({
-    super.key,
-    this.initialType,
-    this.showBackButton = false,
-  });
+  const AdminUsersPage({super.key, this.initialType});
   final String? initialType;
-  final bool showBackButton;
 
   @override
   State<AdminUsersPage> createState() => _AdminUsersPageState();
@@ -408,9 +409,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
     } catch (error) {
       if (mounted)
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${appText('Could not update user: ')}$error'),
-          ),
+          SnackBar(content: Text('${appText('Could not update user: ')}$error')),
         );
     }
   }
@@ -425,7 +424,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
         ),
         backgroundColor: const Color(0xFF1A237E),
         foregroundColor: Colors.white,
-        automaticallyImplyLeading: widget.showBackButton,
+        automaticallyImplyLeading: false,
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _users,
@@ -599,9 +598,9 @@ class _AdminUserDialogState extends State<_AdminUserDialog> {
       if (mounted) Navigator.pop(context);
     } catch (error) {
       if (mounted)
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${appText('Could not save user: ')}$error')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('${appText('Could not save user: ')}$error')));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -654,9 +653,7 @@ class _AdminUserDialogState extends State<_AdminUserDialog> {
               if (snapshot.connectionState == ConnectionState.waiting)
                 return const LinearProgressIndicator();
               if (snapshot.hasError)
-                return Text(
-                  '${appText('Order history unavailable: ')}${snapshot.error}',
-                );
+                return Text('${appText('Order history unavailable: ')}${snapshot.error}');
               final orders = snapshot.data ?? [];
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -760,9 +757,7 @@ class AdminOrdersPage extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         if (snapshot.hasError)
           return Center(
-            child: Text(
-              '${appText('Could not load orders: ')}${snapshot.error}',
-            ),
+            child: Text('${appText('Could not load orders: ')}${snapshot.error}'),
           );
         final orders = snapshot.data ?? [];
         final total = orders.fold<num>(
@@ -883,10 +878,7 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                     'Could not load driver reports. Apply supabase/schema.sql and confirm administrator access.\n\n${snapshot.error}',
                   ),
                   const SizedBox(height: 12),
-                  FilledButton(
-                    onPressed: _refresh,
-                    child: Text(appText('Retry')),
-                  ),
+                  FilledButton(onPressed: _refresh, child: Text(appText('Retry'))),
                 ],
               ),
             ),
@@ -918,9 +910,7 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
               ),
               const SizedBox(height: 4),
               Text(
-                appText(
-                  'Load history and performance for every registered driver.',
-                ),
+                appText('Load history and performance for every registered driver.'),
               ),
               const SizedBox(height: 16),
               Card(
@@ -984,13 +974,9 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                         children: [
                           Text('${appText('Traders: ')}${data.traderCount}'),
                           Text('${appText('Drivers: ')}${drivers.length}'),
-                          Text(
-                            '${appText('Assigned loads: ')}${allLoads.length}',
-                          ),
+                          Text('${appText('Assigned loads: ')}${allLoads.length}'),
                           Text('${appText('Delivered: ')}$delivered'),
-                          Text(
-                            '${appText('Load value: ')}${_formatOmr(totalValue)} OMR',
-                          ),
+                          Text('${appText('Load value: ')}${_formatOmr(totalValue)} OMR'),
                         ],
                       ),
                     ],
