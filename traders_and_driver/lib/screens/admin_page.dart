@@ -78,7 +78,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
   late Future<Map<String, dynamic>> _metrics = _loadAdminMetrics();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: AppLanguageController.instance,
+    builder: (context, _) => _buildContent(context),
+  );
+
+  Widget _buildContent(BuildContext context) {
     final user = Supabase.instance.client.auth.currentUser;
     final displayName =
         user?.userMetadata?['full_name'] ?? user?.phone ?? 'Admin';
@@ -415,7 +420,12 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: AppLanguageController.instance,
+    builder: (context, _) => _buildContent(context),
+  );
+
+  Widget _buildContent(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -607,7 +617,12 @@ class _AdminUserDialogState extends State<_AdminUserDialog> {
   }
 
   @override
-  Widget build(BuildContext context) => AlertDialog(
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: AppLanguageController.instance,
+    builder: (context, _) => _buildContent(context),
+  );
+
+  Widget _buildContent(BuildContext context) => AlertDialog(
     title: Text(appText('User details')),
     content: SingleChildScrollView(
       child: Column(
@@ -744,7 +759,12 @@ String _contactPhone(dynamic profile) {
 class AdminOrdersPage extends StatelessWidget {
   const AdminOrdersPage({super.key});
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: AppLanguageController.instance,
+    builder: (context, _) => _buildContent(context),
+  );
+
+  Widget _buildContent(BuildContext context) => Scaffold(
     appBar: AppBar(
       title: Text(appText('Marketplace orders')),
       backgroundColor: const Color(0xFF1A237E),
@@ -844,7 +864,12 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: AppLanguageController.instance,
+    builder: (context, _) => _buildContent(context),
+  );
+
+  Widget _buildContent(BuildContext context) => Scaffold(
     appBar: AppBar(
       title: Text(
         appText('Reports'),
@@ -1068,7 +1093,12 @@ class _DriverReportCard extends StatelessWidget {
   final Map<String, dynamic> driver;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: AppLanguageController.instance,
+    builder: (context, _) => _buildContent(context),
+  );
+
+  Widget _buildContent(BuildContext context) {
     final loads = _loadsOf(driver);
     final name = _driverName(driver, 'Unnamed driver');
     final completed = loads

@@ -145,7 +145,12 @@ class TraderDashboard extends StatelessWidget {
   const TraderDashboard({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: AppLanguageController.instance,
+    builder: (context, _) => _buildContent(context),
+  );
+
+  Widget _buildContent(BuildContext context) {
     final user = Supabase.instance.client.auth.currentUser;
     final displayName =
         user?.userMetadata?['full_name'] ?? user?.phone ?? 'Trader';
@@ -653,7 +658,12 @@ class TraderLoadsPage extends StatelessWidget {
       (value is num ? value : num.tryParse('$value') ?? 0).toStringAsFixed(3);
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: AppLanguageController.instance,
+    builder: (context, _) => _buildContent(context),
+  );
+
+  Widget _buildContent(BuildContext context) => Scaffold(
     appBar: AppBar(
       title: Text(appText(title)),
       backgroundColor: const Color(0xFF1A237E),
@@ -776,7 +786,12 @@ class _AddProductPageState extends State<AddProductPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: AppLanguageController.instance,
+    builder: (context, _) => _buildContent(context),
+  );
+
+  Widget _buildContent(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -1234,7 +1249,12 @@ class _TraderProductsPageState extends State<TraderProductsPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: AppLanguageController.instance,
+    builder: (context, _) => _buildContent(context),
+  );
+
+  Widget _buildContent(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(

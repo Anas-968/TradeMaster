@@ -139,7 +139,12 @@ class _SupportChatPageState extends State<SupportChatPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: AppLanguageController.instance,
+    builder: (context, _) => _buildContent(context),
+  );
+
+  Widget _buildContent(BuildContext context) {
     if (_loading)
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     if (_error != null)

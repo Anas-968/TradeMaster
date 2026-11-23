@@ -144,7 +144,12 @@ class _AssistantChatPageState extends State<AssistantChatPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: AppLanguageController.instance,
+    builder: (context, _) => _buildContent(context),
+  );
+
+  Widget _buildContent(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(

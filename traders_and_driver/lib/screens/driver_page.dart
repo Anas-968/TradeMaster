@@ -204,7 +204,12 @@ class DriverDashboard extends StatelessWidget {
   const DriverDashboard({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: AppLanguageController.instance,
+    builder: (context, _) => _buildContent(context),
+  );
+
+  Widget _buildContent(BuildContext context) {
     final user = Supabase.instance.client.auth.currentUser;
     final displayName =
         user?.userMetadata?['full_name'] ?? user?.phone ?? 'Driver';
@@ -647,7 +652,12 @@ class AvailableLoadsPage extends StatelessWidget {
   const AvailableLoadsPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: AppLanguageController.instance,
+    builder: (context, _) => _buildContent(context),
+  );
+
+  Widget _buildContent(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -750,7 +760,12 @@ class DriverJobsPage extends StatelessWidget {
   const DriverJobsPage({super.key});
 
   @override
-  Widget build(BuildContext context) => DefaultTabController(
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: AppLanguageController.instance,
+    builder: (context, _) => _buildContent(context),
+  );
+
+  Widget _buildContent(BuildContext context) => DefaultTabController(
         length: 2,
         child: Scaffold(
           appBar: AppBar(
