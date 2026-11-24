@@ -710,6 +710,176 @@ class AddProductPage extends StatefulWidget {
   State<AddProductPage> createState() => _AddProductPageState();
 }
 
+class CardDetailsPage extends StatefulWidget {
+  const CardDetailsPage({super.key});
+
+  @override
+  State<CardDetailsPage> createState() => _CardDetailsPageState();
+}
+
+class _CardDetailsPageState extends State<CardDetailsPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _name = TextEditingController();
+  final _number = TextEditingController();
+  final _expiry = TextEditingController();
+  final _cvv = TextEditingController();
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _number.dispose();
+    _expiry.dispose();
+    _cvv.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(
+      title: Text(appText('Card details')),
+      backgroundColor: const Color(0xFF1A237E),
+      foregroundColor: Colors.white,
+    ),
+    body: ListenableBuilder(
+      listenable: AppLanguageController.instance,
+      builder: (context, _) => Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            Text(
+              appText('Enter card details to use this demo payment method.'),
+              style: GoogleFonts.poppins(color: Colors.black54),
+            ),
+            const SizedBox(height: 20),
+            _cardField(_name, 'Name on card'),
+            const SizedBox(height: 14),
+            _cardField(
+              _number,
+              'Card number',
+              keyboardType: TextInputType.number,
+              validator: (value) {
+                final digits = (value ?? '').replaceAll(RegExp(r'\D'), '');
+                return digits.length >= 12 && digits.length <= 19
+                    ? null
+                    : appText('Enter a valid card number');
+              },
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: _cardField(
+                    _expiry,
+                    'Expiry (MM/YY)',
+                    validator: (value) => RegExp(r'^\d{2}/\d{2}$').hasMatch(value ?? '')
+                        ? null
+                        : appText('Enter expiry as MM/YY'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _cardField(
+                    _cvv,
+                    'CVV',
+                    keyboardType: TextInputType.number,
+                    validator: (value) => RegExp(r'^\d{3,4}$').hasMatch(value ?? '')
+                        ? null
+                        : appText('Enter a valid CVV'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              appText('Demo only. Card details are not saved and no payment is processed.'),
+              style: const TextStyle(color: Colors.black54, fontSize: 12),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              height: 50,
+              child: FilledButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) Navigator.of(context).pop(true);
+                },
+                style: FilledButton.styleFrom(backgroundColor: const Color(0xFF1A237E)),
+                child: Text(appText('Apply card details')),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+
+  Widget _cardField(
+    TextEditingController controller,
+    String label, {
+    TextInputType keyboardType = TextInputType.text,
+    String? Function(String?)? validator,
+  }) => TextFormField(
+    controller: controller,
+    keyboardType: keyboardType,
+    validator: validator ?? (value) => value == null || value.trim().isEmpty
+        ? appText('This field is required')
+        : null,
+    decoration: InputDecoration(
+      labelText: appText(label),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+    ),
+  );
+}
+class ProductAddedPage extends StatelessWidget {
+  const ProductAddedPage({super.key});
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(
+      title: Text(appText('Product added')),
+      backgroundColor: const Color(0xFF1A237E),
+      foregroundColor: Colors.white,
+    ),
+    body: Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.check_circle, color: Color(0xFF2E7D32), size: 88),
+            const SizedBox(height: 20),
+            Text(
+              appText('The product was added successfully!'),
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF1A237E),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              appText('Your load is now visible to drivers.'),
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(color: Colors.black54),
+            ),
+            const SizedBox(height: 28),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF1A237E),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                child: Text(appText('Done')),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
 class _AddProductPageState extends State<AddProductPage> {
   final _formKey = GlobalKey<FormState>();
   final _product = TextEditingController();
@@ -769,12 +939,19 @@ class _AddProductPageState extends State<AddProductPage> {
       for (final controller in [_product, _description, _weight, _price]) {
         controller.clear();
       }
-      if (mounted)
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(appText('Load posted. Drivers can now accept it.')),
-          ),
-        );
+      if (mounted) {
+        if (_paymentMethod == 'Card (demo)') {
+          await Navigator.of(context).push(
+            MaterialPageRoute<void>(builder: (_) => const ProductAddedPage()),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(appText('Load posted. Drivers can now accept it.')),
+            ),
+          );
+        }
+      }
     } catch (e) {
       if (mounted)
         ScaffoldMessenger.of(
@@ -848,8 +1025,15 @@ class _AddProductPageState extends State<AddProductPage> {
                         ),
                       )
                       .toList(),
-                  onChanged: (method) {
-                    if (method != null) setState(() => _paymentMethod = method);
+                  onChanged: (method) async {
+                    if (method == null) return;
+                    if (method == 'Card (demo)') {
+                      final applied = await Navigator.of(context).push<bool>(
+                        MaterialPageRoute<bool>(builder: (_) => const CardDetailsPage()),
+                      );
+                      if (!mounted || applied != true) return;
+                    }
+                    setState(() => _paymentMethod = method);
                   },
                 ),
                 const SizedBox(height: 6),
