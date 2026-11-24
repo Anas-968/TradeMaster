@@ -55,12 +55,18 @@ class _AdminPageState extends State<AdminPage> {
             icon: Icon(Icons.dashboard),
             label: appText('Dashboard'),
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: appText('Users')),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.people),
+            label: appText('Users'),
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.bar_chart),
             label: appText('Reports'),
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.support_agent), label: appText('Support')),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.support_agent),
+            label: appText('Support'),
+          ),
         ],
       ),
     );
@@ -414,7 +420,9 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
     } catch (error) {
       if (mounted)
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${appText('Could not update user: ')}$error')),
+          SnackBar(
+            content: Text('${appText('Could not update user: ')}$error'),
+          ),
         );
     }
   }
@@ -608,9 +616,9 @@ class _AdminUserDialogState extends State<_AdminUserDialog> {
       if (mounted) Navigator.pop(context);
     } catch (error) {
       if (mounted)
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('${appText('Could not save user: ')}$error')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${appText('Could not save user: ')}$error')),
+        );
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -668,7 +676,9 @@ class _AdminUserDialogState extends State<_AdminUserDialog> {
               if (snapshot.connectionState == ConnectionState.waiting)
                 return const LinearProgressIndicator();
               if (snapshot.hasError)
-                return Text('${appText('Order history unavailable: ')}${snapshot.error}');
+                return Text(
+                  '${appText('Order history unavailable: ')}${snapshot.error}',
+                );
               final orders = snapshot.data ?? [];
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -777,7 +787,9 @@ class AdminOrdersPage extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         if (snapshot.hasError)
           return Center(
-            child: Text('${appText('Could not load orders: ')}${snapshot.error}'),
+            child: Text(
+              '${appText('Could not load orders: ')}${snapshot.error}',
+            ),
           );
         final orders = snapshot.data ?? [];
         final total = orders.fold<num>(
@@ -849,10 +861,10 @@ class AdminReportsPage extends StatefulWidget {
 }
 
 class _AdminReportsPageState extends State<AdminReportsPage> {
-  late Future<_ReportData> _report = _loadDriverReports();
+  late Future<_ReportData> _report = _loadActivityReports();
 
   Future<void> _refresh() async {
-    final next = _loadDriverReports();
+    final next = _loadActivityReports();
     setState(() {
       _report = next;
     });
@@ -903,7 +915,10 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                     'Could not load driver reports. Apply supabase/schema.sql and confirm administrator access.\n\n${snapshot.error}',
                   ),
                   const SizedBox(height: 12),
-                  FilledButton(onPressed: _refresh, child: Text(appText('Retry'))),
+                  FilledButton(
+                    onPressed: _refresh,
+                    child: Text(appText('Retry')),
+                  ),
                 ],
               ),
             ),
@@ -911,6 +926,7 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
         }
         final data = snapshot.data!;
         final drivers = data.drivers;
+        final traders = data.traders;
         final allLoads = drivers.expand(_loadsOf).toList();
         final delivered = allLoads
             .where((load) => load['status'] == 'Delivered')
@@ -935,7 +951,9 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
               ),
               const SizedBox(height: 4),
               Text(
-                appText('Load history and performance for every registered driver.'),
+                appText(
+                  'Load history and performance for every registered driver.',
+                ),
               ),
               const SizedBox(height: 16),
               Card(
@@ -999,9 +1017,13 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                         children: [
                           Text('${appText('Traders: ')}${data.traderCount}'),
                           Text('${appText('Drivers: ')}${drivers.length}'),
-                          Text('${appText('Assigned loads: ')}${allLoads.length}'),
+                          Text(
+                            '${appText('Assigned loads: ')}${allLoads.length}',
+                          ),
                           Text('${appText('Delivered: ')}$delivered'),
-                          Text('${appText('Load value: ')}${_formatOmr(totalValue)} OMR'),
+                          Text(
+                            '${appText('Load value: ')}${_formatOmr(totalValue)} OMR',
+                          ),
                         ],
                       ),
                     ],
@@ -1017,6 +1039,25 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                   ),
                 ),
               for (final driver in drivers) _DriverReportCard(driver: driver),
+              const SizedBox(height: 24),
+              Text(
+                appText('Trader activity'),
+                style: GoogleFonts.poppins(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(appText('Loads posted by every registered trader.')),
+              const SizedBox(height: 12),
+              if (traders.isEmpty)
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Text(appText('No traders registered yet.')),
+                  ),
+                ),
+              for (final trader in traders) _TraderReportCard(trader: trader),
             ],
           ),
         );
@@ -1026,9 +1067,10 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
 }
 
 class _ReportData {
-  const _ReportData({required this.drivers, required this.traderCount});
+  const _ReportData({required this.drivers, required this.traders});
   final List<Map<String, dynamic>> drivers;
-  final int traderCount;
+  final List<Map<String, dynamic>> traders;
+  int get traderCount => traders.length;
 }
 
 List<Map<String, dynamic>> _loadsOf(Map<String, dynamic> driver) {
@@ -1040,7 +1082,7 @@ List<Map<String, dynamic>> _loadsOf(Map<String, dynamic> driver) {
       .toList();
 }
 
-Future<_ReportData> _loadDriverReports() async {
+Future<_ReportData> _loadActivityReports() async {
   final db = Supabase.instance.client;
   final profileRows = await db
       .from('profiles')
@@ -1052,30 +1094,40 @@ Future<_ReportData> _loadDriverReports() async {
   final drivers = profiles
       .where((profile) => profile['user_type'] == 'Driver')
       .toList();
-  final traderCount = profiles
+  final traders = profiles
       .where((profile) => profile['user_type'] == 'Trader')
-      .length;
-
-  final loadsByDriver = <String, List<Map<String, dynamic>>>{};
-  if (drivers.isNotEmpty) {
-    final driverIds = drivers.map((driver) => '${driver['id']}').toList();
-    final loadRows = await db
-        .from('loads')
-        .select()
-        .inFilter('driver_id', driverIds)
-        .order('created_at', ascending: false);
-    for (final row in loadRows) {
-      final load = Map<String, dynamic>.from(row);
-      loadsByDriver
-          .putIfAbsent('${load['driver_id']}', () => <Map<String, dynamic>>[])
+      .toList();
+  final loadsByOwner = <String, List<Map<String, dynamic>>>{};
+  final loadRows = await db
+      .from('loads')
+      .select()
+      .order('created_at', ascending: false);
+  final traderIds = traders.map((trader) => '${trader['id']}').toSet();
+  final driverIds = drivers.map((driver) => '${driver['id']}').toSet();
+  for (final row in loadRows) {
+    final load = Map<String, dynamic>.from(row);
+    final traderId = '${load['trader_id']}';
+    final driverId = '${load['driver_id']}';
+    if (traderIds.contains(traderId)) {
+      loadsByOwner
+          .putIfAbsent('trader:$traderId', () => <Map<String, dynamic>>[])
+          .add(load);
+    }
+    if (driverIds.contains(driverId)) {
+      loadsByOwner
+          .putIfAbsent('driver:$driverId', () => <Map<String, dynamic>>[])
           .add(load);
     }
   }
   for (final driver in drivers) {
     driver['loads'] =
-        loadsByDriver['${driver['id']}'] ?? <Map<String, dynamic>>[];
+        loadsByOwner['driver:${driver['id']}'] ?? <Map<String, dynamic>>[];
   }
-  return _ReportData(drivers: drivers, traderCount: traderCount);
+  for (final trader in traders) {
+    trader['loads'] =
+        loadsByOwner['trader:${trader['id']}'] ?? <Map<String, dynamic>>[];
+  }
+  return _ReportData(drivers: drivers, traders: traders);
 }
 
 String _driverName(Map<String, dynamic> driver, String fallback) {
@@ -1087,6 +1139,65 @@ String _driverName(Map<String, dynamic> driver, String fallback) {
 
 bool _isActiveLoad(Map<String, dynamic> load) =>
     load['status'] == 'Accepted' || load['status'] == 'In transit';
+
+class _TraderReportCard extends StatelessWidget {
+  const _TraderReportCard({required this.trader});
+  final Map<String, dynamic> trader;
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: AppLanguageController.instance,
+    builder: (context, _) {
+      final loads = _loadsOf(trader);
+      final name = _driverName(trader, 'Unnamed trader');
+      final delivered = loads
+          .where((load) => load['status'] == 'Delivered')
+          .length;
+      final value = loads.fold<num>(
+        0,
+        (sum, load) => sum + ((load['price_omr'] as num?) ?? 0),
+      );
+      return Card(
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        child: ExpansionTile(
+          leading: CircleAvatar(
+            child: Text(name.isEmpty ? '?' : name[0].toUpperCase()),
+          ),
+          title: Text(name),
+          subtitle: Text(
+            '${loads.length} loads posted - $delivered delivered - ${_formatOmr(value)} OMR',
+          ),
+          children: [
+            if (loads.isEmpty)
+              ListTile(title: Text(appText('No loads posted yet'))),
+            for (final load in loads)
+              ListTile(
+                dense: true,
+                isThreeLine: true,
+                leading: const Icon(Icons.inventory_2_outlined),
+                title: Text('#${load['id']} ${load['product'] ?? 'Load'}'),
+                subtitle: Text(
+                  '${load['pickup_location'] ?? 'Unknown'} to ${load['delivery_location'] ?? 'Unknown'} - ${load['status'] ?? 'Unknown'}\nWeight: ${load['weight'] ?? 'Unknown'} - Created: ${_reportDate(load['created_at'])}',
+                ),
+                trailing: Text('${_formatOmr(load['price_omr'])} OMR'),
+              ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 8, bottom: 4),
+                child: TextButton.icon(
+                  onPressed: () => _downloadTraderReport(context, trader),
+                  icon: const Icon(Icons.picture_as_pdf_outlined),
+                  label: Text(appText('Print / Download PDF')),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
 
 class _DriverReportCard extends StatelessWidget {
   const _DriverReportCard({required this.driver});
@@ -1154,6 +1265,90 @@ String _reportDate(dynamic value) {
   final date = DateTime.tryParse('$value')?.toLocal();
   if (date == null) return appText('Unknown');
   return '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+}
+
+Future<void> _downloadTraderReport(
+  BuildContext context,
+  Map<String, dynamic> trader,
+) async {
+  final messenger = ScaffoldMessenger.of(context);
+  try {
+    final loads = _loadsOf(trader);
+    final name = _driverName(trader, 'Trader');
+    final delivered = loads
+        .where((load) => load['status'] == 'Delivered')
+        .length;
+    final active = loads.where(_isActiveLoad).length;
+    final total = loads.fold<num>(
+      0,
+      (sum, load) => sum + ((load['price_omr'] as num?) ?? 0),
+    );
+    final isActive = trader['is_active'] as bool? ?? true;
+    final document = pw.Document();
+    document.addPage(
+      pw.MultiPage(
+        build: (pw.Context pdfContext) => <pw.Widget>[
+          pw.Text(
+            'Trader Activity Report',
+            style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold),
+          ),
+          pw.SizedBox(height: 12),
+          pw.Text('Trader: $name'),
+          pw.Text('Phone: ${trader['phone'] ?? 'Not provided'}'),
+          pw.Text('Account status: ${isActive ? 'Active' : 'Suspended'}'),
+          pw.Text(
+            'Report generated: ${_reportDate(DateTime.now().toIso8601String())}',
+          ),
+          pw.SizedBox(height: 8),
+          pw.Text(
+            'Loads posted: ${loads.length} | Delivered: $delivered | Active: $active | Total load value: ${_formatOmr(total)} OMR',
+          ),
+          pw.SizedBox(height: 16),
+          if (loads.isEmpty) pw.Text('No loads posted by this trader.'),
+          if (loads.isNotEmpty)
+            pw.TableHelper.fromTextArray(
+              headers: <String>[
+                'ID / Product',
+                'Route',
+                'Status',
+                'Weight',
+                'OMR',
+                'Created',
+                'Delivered',
+              ],
+              data: loads
+                  .map(
+                    (load) => <String>[
+                      '#${load['id']} ${load['product'] ?? ''}',
+                      '${load['pickup_location'] ?? ''} to ${load['delivery_location'] ?? ''}',
+                      '${load['status'] ?? ''}',
+                      '${load['weight'] ?? ''}',
+                      _formatOmr(load['price_omr']),
+                      _reportDate(load['created_at']),
+                      _reportDate(load['delivered_at']),
+                    ],
+                  )
+                  .toList(),
+              headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+              cellStyle: const pw.TextStyle(fontSize: 8),
+            ),
+        ],
+      ),
+    );
+    final bytes = await document.save();
+    final slug = '${trader['full_name'] ?? trader['id']}'.replaceAll(
+      RegExp(r'[^a-zA-Z0-9_-]'),
+      '_',
+    );
+    await Printing.layoutPdf(
+      name: 'trader_${slug}_report.pdf',
+      onLayout: (_) async => bytes,
+    );
+  } catch (error) {
+    messenger.showSnackBar(
+      SnackBar(content: Text('${appText('Could not create PDF: ')}$error')),
+    );
+  }
 }
 
 Future<void> _downloadDriverReport(
