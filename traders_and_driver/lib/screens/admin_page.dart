@@ -1203,6 +1203,7 @@ Future<void> _downloadDriverReport(
                 'Weight',
                 'OMR',
                 'Created',
+                'Delivered',
               ],
               data: loads
                   .map(
@@ -1213,6 +1214,7 @@ Future<void> _downloadDriverReport(
                       '${load['weight'] ?? ''}',
                       _formatOmr(load['price_omr']),
                       _reportDate(load['created_at']),
+                      _reportDate(load['delivered_at']),
                     ],
                   )
                   .toList(),
